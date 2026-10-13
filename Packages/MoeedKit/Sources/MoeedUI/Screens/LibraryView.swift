@@ -94,6 +94,7 @@ struct LibraryView: View {
             }
             .padding(22)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
             .card()
         }
         .buttonStyle(.plain)
@@ -174,7 +175,7 @@ private struct LectureTile: View {
                     case .ready:
                         StatusPill(text: "جاهزة", foreground: Theme.correctText, background: Theme.correctTint)
                     case let .preparing(progress):
-                        StatusPill(text: "يتجهّز \(Int(progress * 100))%", foreground: Theme.workingText, background: Theme.workingTint)
+                        StatusPill(text: "يتجهّز " + RichText.ltr("\(Int(progress * 100))%"), foreground: Theme.workingText, background: Theme.workingTint)
                     }
                 }
                 Group {

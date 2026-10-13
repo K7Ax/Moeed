@@ -87,14 +87,14 @@ public enum Samples {
             Step(
                 id: 9,
                 marks: [.spot(SlideRect(330, 270, 452, 290))],
-                caption: [Phrase("الخلاصة: `Vp = 8 V` و `Vp-p = 16 V`"), Phrase("`T = 0.4 s` و `f = 2.5 Hz`")],
+                caption: [Phrase("القمة `8 V` ومن القمة للقمة `16 V`"), Phrase("الدورة `0.4 s` والتردد `2.5 Hz`")],
                 placement: CaptionPlacement(card: SlideRect(40, 446, 280, 110))
             ),
         ]
     )
 
     /// The region a student selected in the "explain this" sample.
-    public static let explainSelection = SlideRect(44, 380, 150, 50)
+    public static let explainSelection = SlideRect(44, 388, 150, 44)
 
     public static let lecture5 = Lecture(
         id: "EE207-L5", number: 5, title: "Sinusoidal Waveforms",

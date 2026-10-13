@@ -77,7 +77,7 @@ struct AskPanel: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(model.pickedRight ? Theme.correct : Theme.pen)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(model.pickedRight ? "صح، بالضبط." : "قريب، بس شوف وين انرسمت الدائرة.")
+                    Text(model.pickedRight ? "صح، بالضبط." : "مو بالضبط، شوف وين انرسمت الدائرة.")
                         .font(.system(size: 15, weight: .semibold))
                     Text(RichText.attributed(ask.why))
                         .font(.system(size: 15))

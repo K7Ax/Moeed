@@ -117,7 +117,6 @@ struct PlayerView: View {
                             CaptionCard(number: model.step.id, phrases: model.step.caption, revealed: model.revealed)
                                 .frame(maxWidth: min(fitWidth, 680))
                         }
-                        Spacer(minLength: 0)
                     }
                 }
             }

@@ -27,7 +27,7 @@ struct ExplainPanel: View {
                 StatusPill(text: "منطقة محدّدة", foreground: Theme.focus, background: Theme.focusTint)
             }
 
-            RegionCrop(page: page, rect: selection)
+            RegionCrop(page: page, rect: selection, width: 382)
                 .overlay(
                     RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
                         .strokeBorder(Theme.focus, style: StrokeStyle(lineWidth: 2, dash: [7, 5]))
@@ -119,20 +119,18 @@ struct ExplainPanel: View {
 struct RegionCrop: View {
     var page: SlidePage
     var rect: SlideRect
-    var pad: Double = 14
+    var width: CGFloat
+    var pad: Double = 6
 
     var body: some View {
-        let w = rect.w + pad * 2
-        let h = rect.h + pad * 2
-        GeometryReader { geo in
-            let scale = geo.size.width / CGFloat(w)
-            SlideStage(page: page)
-                .frame(width: CGFloat(page.width) * scale, height: CGFloat(page.height) * scale)
-                .offset(x: -CGFloat(rect.x - pad) * scale, y: -CGFloat(rect.y - pad) * scale)
-        }
-        .aspectRatio(CGFloat(w / h), contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-        .environment(\.layoutDirection, .leftToRight)
-        .accessibilityHidden(true)
+        let scale = width / CGFloat(rect.w + pad * 2)
+        SlideStage(page: page)
+            .frame(width: CGFloat(page.width) * scale, height: CGFloat(page.height) * scale)
+            .offset(x: -CGFloat(rect.x - pad) * scale, y: -CGFloat(rect.y - pad) * scale)
+            .frame(width: width, height: CGFloat(rect.h + pad * 2) * scale, alignment: .topLeading)
+            .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+            .environment(\.layoutDirection, .leftToRight)
+            .accessibilityHidden(true)
     }
 }
