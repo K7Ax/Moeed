@@ -191,8 +191,9 @@ private struct OptionRow: View {
                             .padding(.vertical, -7)
                             .animation(.easeInOut(duration: InkTiming.stroke).delay(0.25), value: circled)
                     }
-                Spacer(minLength: 0)
                 tag
+                    .padding(.leading, 6)
+                Spacer(minLength: 0)
             }
             .padding(.horizontal, 4)
             .frame(minHeight: 60)

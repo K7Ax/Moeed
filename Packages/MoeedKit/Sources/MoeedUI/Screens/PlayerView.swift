@@ -43,6 +43,7 @@ struct PlayerView: View {
                     }
                 }
                 .buttonStyle(.underlined)
+                .fixedSize()
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: model.page.title)

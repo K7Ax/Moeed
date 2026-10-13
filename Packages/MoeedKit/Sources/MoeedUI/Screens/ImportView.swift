@@ -73,8 +73,6 @@ struct ImportView: View {
             }
             .padding(.top, 6)
 
-            Spacer(minLength: 16)
-
             HStack(alignment: .top, spacing: 12) {
                 Rectangle().fill(Theme.red).frame(width: 2)
                 Text("تقدر تبدأ من السلايدات الجاهزة، والباقي يتجهّز وانت تذاكر.")
@@ -83,6 +81,7 @@ struct ImportView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 22)
             .padding(.bottom, 16)
 
             Button { router.route = .player } label: {
@@ -96,8 +95,8 @@ struct ImportView: View {
             .buttonStyle(.ink())
         }
         .padding(24)
-        .frame(maxHeight: .infinity, alignment: .top)
         .paperSheet()
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: Slides

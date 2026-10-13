@@ -171,6 +171,7 @@ struct LibraryView: View {
 
             ReviewNote(count: Samples.reviewItems.count + 2) { router.route = .review }
                 .frame(width: 236)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 14)
         }
     }
@@ -284,7 +285,6 @@ struct ReviewNote: View {
                     .font(Theme.text(14))
                     .foregroundStyle(Theme.ink.opacity(0.75))
                     .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 6)
                 HStack(spacing: 6) {
                     Text("ابدأ المراجعة")
                     Image(systemName: "chevron.forward")
@@ -295,11 +295,10 @@ struct ReviewNote: View {
                 .overlay(alignment: .bottom) { Hairline(color: Theme.red, weight: 1.5).offset(y: 4) }
             }
             .padding(18)
-            .frame(maxWidth: .infinity, minHeight: 170, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
             .background {
                 ZStack {
                     Color(hex: 0xF6DF6E)
-                    LinearGradient(colors: [.clear, Theme.ink.opacity(0.06)], startPoint: .top, endPoint: .bottom)
                     Grain(density: 0.8)
                 }
                 .shadow(color: Theme.ink.opacity(0.2), radius: 1, y: 1)
