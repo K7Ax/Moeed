@@ -219,7 +219,7 @@ struct SculptureScene {
                 base = material.lit.mix(RGB(0xFFFFFF), 0.25 * lambert)
             }
             context.fill(path, with: .linearGradient(
-                Gradient(colors: [base.scaled(1.14).color(), base.scaled(0.8).color()]),
+                Gradient(colors: [base.scaled(1.28).mix(RGB(0x7CF7DE), 0.08).color(), base.scaled(0.72).color()]),
                 startPoint: CGPoint(x: midX, y: top), endPoint: CGPoint(x: midX, y: bottom)
             ))
             // Same-colour stroke closes hairline seams; a faint light edge on lit faces gives the clay its crispness.

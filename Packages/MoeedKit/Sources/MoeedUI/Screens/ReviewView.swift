@@ -131,7 +131,7 @@ private struct ReviewRow: View {
                     Label("فهمتها", systemImage: "checkmark")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary(height: 44))
+                .buttonStyle(.filled(Theme.teal.opacity(0.2), foreground: Theme.mint, height: 44))
             }
             .frame(width: 150)
         }

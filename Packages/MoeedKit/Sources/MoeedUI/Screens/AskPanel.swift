@@ -42,7 +42,7 @@ struct AskPanel: View {
                     ) {
                         model.pick(option.id)
                     }
-                    .disabled(model.isAnswered)
+                    .allowsHitTesting(!model.isAnswered)
                 }
             }
 

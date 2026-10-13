@@ -64,11 +64,11 @@ struct LibraryView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             LogoSculpture()
-                .frame(width: 380, height: 330)
-                .padding(.vertical, -36)
+                .frame(width: 400, height: 350)
+                .padding(.vertical, -30)
                 .padding(.trailing, 4)
         }
-        .frame(height: 262)
+        .frame(height: 290)
         .background {
             ZStack {
                 RoundedRectangle(cornerRadius: Radius.panel, style: .continuous)

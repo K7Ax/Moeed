@@ -234,12 +234,14 @@ private struct SlideThumb: View {
         let scale = Self.size.width / 800
         let lineA: CGFloat = [44, 36, 50, 40][number % 4]
         let lineB: CGFloat = [30, 46, 38, 52][(number + 1) % 4]
+        let waiting = state == .waiting
         ZStack(alignment: .topLeading) {
-            Color.white
+            // Waiting slides are still glass; they turn to paper once their explanation is written.
+            waiting ? Color.white.opacity(0.04) : Color.white
             VStack(alignment: .leading, spacing: 5) {
-                Capsule().fill(Theme.slideTitle.opacity(0.55)).frame(width: lineA, height: 4)
-                Capsule().fill(Theme.slideRule).frame(width: lineB, height: 3)
-                Capsule().fill(Theme.slideRule).frame(width: lineA - 8, height: 3)
+                Capsule().fill(waiting ? Color.white.opacity(0.16) : Theme.slideTitle.opacity(0.55)).frame(width: lineA, height: 4)
+                Capsule().fill(waiting ? Color.white.opacity(0.08) : Theme.slideRule).frame(width: lineB, height: 3)
+                Capsule().fill(waiting ? Color.white.opacity(0.08) : Theme.slideRule).frame(width: lineA - 8, height: 3)
             }
             .padding(8)
             if state != .waiting {
@@ -257,10 +259,10 @@ private struct SlideThumb: View {
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .strokeBorder(state == .writing ? Theme.working : .white.opacity(0.4), lineWidth: state == .writing ? 2 : 0.5)
+                .strokeBorder(state == .writing ? Theme.working : .white.opacity(waiting ? 0.1 : 0.4), lineWidth: state == .writing ? 2 : 1)
         )
         .shadow(color: state == .writing ? Theme.working.opacity(0.6) : state == .ready ? Theme.teal.opacity(0.25) : .clear, radius: 10)
-        .opacity(state == .waiting ? 0.28 : 1)
+
         .environment(\.layoutDirection, .leftToRight)
         .accessibilityElement()
         .accessibilityLabel(Text("سلايد \(String(number))"))

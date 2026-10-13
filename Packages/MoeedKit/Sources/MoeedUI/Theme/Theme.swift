@@ -95,13 +95,18 @@ extension View {
 
     /// A slide is a white screen in a dark room: crisp edge, teal light spilling under it.
     func slideFrame(glow: Bool = true) -> some View {
+        // The light comes from a shape behind the slide, so it never bleeds onto the slide's own text.
         clipShape(RoundedRectangle(cornerRadius: Radius.slide, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: Radius.slide, style: .continuous)
                     .strokeBorder(.white.opacity(0.6), lineWidth: 0.5)
             )
-            .shadow(color: Theme.teal.opacity(glow ? 0.28 : 0), radius: 38, y: 18)
-            .shadow(color: .black.opacity(0.5), radius: 12, y: 6)
+            .background {
+                RoundedRectangle(cornerRadius: Radius.slide, style: .continuous)
+                    .fill(.white)
+                    .shadow(color: Theme.teal.opacity(glow ? 0.3 : 0), radius: 38, y: 18)
+                    .shadow(color: .black.opacity(0.5), radius: 12, y: 6)
+            }
     }
 
     /// Soft coloured light under bright controls.
