@@ -123,7 +123,8 @@ struct Grain: View {
                 seed ^= seed << 13; seed ^= seed >> 7; seed ^= seed << 17
                 return Double(seed % 10_000) / 10_000
             }
-            let count = Int(size.width * size.height / 900 * density)
+            let area = Double(size.width * size.height)
+            let count = Int(area / 900 * density)
             for _ in 0..<min(count, 6000) {
                 let x = next() * size.width
                 let y = next() * size.height
