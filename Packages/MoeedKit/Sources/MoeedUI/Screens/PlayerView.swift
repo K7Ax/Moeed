@@ -22,7 +22,7 @@ struct PlayerView: View {
             PlayerControls(model: model)
                 .padding(.bottom, 18)
         }
-        .background(Theme.ground)
+        .background(Aurora(intensity: 0.55))
         .onAppear {
             if !model.isSettled { model.play() }
         }
@@ -39,7 +39,8 @@ struct PlayerView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: model.page.title)
-                    .font(.system(size: 19, weight: .bold))
+                    .font(.system(size: 19, weight: .heavy))
+                    .foregroundStyle(Theme.ink)
                     .lineLimit(1)
                 Text("\(model.page.deckTitle) · سلايد \(String(model.page.id)) من \(String(model.page.deckPageCount))")
                     .font(.system(size: 13))
@@ -54,15 +55,15 @@ struct PlayerView: View {
                 LayerToggle(title: "النص", symbol: "text.alignright", isOn: $model.showText)
             }
             .padding(4)
-            .background(Theme.surface, in: Capsule())
-            .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
+            .background(.white.opacity(0.05), in: Capsule())
+            .overlay(Capsule().strokeBorder(Theme.edge, lineWidth: 1))
 
             Button {
                 withAnimation(.snappy(duration: 0.3)) { explaining.toggle() }
             } label: {
                 Label(explaining ? "رجوع للشرح" : "اشرح هذا", systemImage: explaining ? "xmark" : "viewfinder")
             }
-            .buttonStyle(.filled(explaining ? Theme.focus : Theme.ink, height: 44))
+            .buttonStyle(explaining ? FilledButtonStyle.filled(Theme.focus, height: 44) : FilledButtonStyle.primary(height: 44))
         }
         .padding(.horizontal, 24)
         .padding(.top, 18)
@@ -152,10 +153,11 @@ private struct LayerToggle: View {
         } label: {
             Label(title, systemImage: symbol)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(isOn ? Color.white : Theme.secondary)
+                .foregroundStyle(isOn ? Theme.mint : Theme.muted)
                 .padding(.horizontal, 14)
                 .frame(height: 36)
-                .background(isOn ? Theme.ink : Color.clear, in: Capsule())
+                .background(isOn ? Theme.teal.opacity(0.2) : Color.clear, in: Capsule())
+                .overlay(Capsule().strokeBorder(isOn ? Theme.mint.opacity(0.45) : .clear, lineWidth: 1))
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -188,7 +190,7 @@ struct PlayerControls: View {
                     Image(systemName: "chevron.forward")
                 }
             }
-            .buttonStyle(.filled(Theme.pen, height: 44))
+            .buttonStyle(.pen(height: 44))
             .disabled(model.isLast || (model.step.ask != nil && !model.isAnswered))
 
             Rectangle().fill(Theme.line).frame(width: 1, height: 28)
@@ -210,10 +212,14 @@ struct PlayerControls: View {
             .accessibilityValue(Text(verbatim: model.speedLabel))
         }
         .padding(.horizontal, 12)
-        .frame(height: 64)
-        .background(Theme.surface, in: Capsule())
-        .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
-        .shadow(color: Theme.ink.opacity(0.08), radius: 14, y: 6)
+        .frame(height: 66)
+        .background {
+            Capsule().fill(Theme.surface.opacity(0.94))
+                .overlay(Capsule().fill(LinearGradient(colors: [.white.opacity(0.08), .clear], startPoint: .top, endPoint: .center)))
+                .overlay(Capsule().strokeBorder(Theme.edge, lineWidth: 1))
+                .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
+                .shadow(color: Theme.teal.opacity(0.18), radius: 30)
+        }
     }
 }
 
@@ -229,7 +235,8 @@ private struct RoundIconButton: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Theme.ink)
                 .frame(width: 44, height: 44)
-                .background(Theme.ground, in: Circle())
+                .background(.white.opacity(0.07), in: Circle())
+                .overlay(Circle().strokeBorder(Theme.line, lineWidth: 1))
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -272,15 +279,17 @@ struct StepScrubber: View {
 
     @ViewBuilder
     private func segment(_ index: Int) -> some View {
-        let color = index <= current ? Theme.pen : Theme.faint.opacity(0.6)
+        let color = index <= current ? Theme.mint : Theme.faint.opacity(0.7)
         if askSteps.contains(index) {
             Circle()
-                .strokeBorder(color, lineWidth: 2.5)
+                .strokeBorder(index <= current ? Theme.pen : Theme.faint, lineWidth: 2.5)
                 .frame(width: 12, height: 12)
+                .glow(Theme.pen, radius: 5, opacity: index <= current ? 0.9 : 0)
         } else {
             Capsule()
                 .fill(color)
                 .frame(height: index == current ? 8 : 5)
+                .glow(Theme.mint, radius: 5, opacity: index <= current ? 0.7 : 0)
         }
     }
 }

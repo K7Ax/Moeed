@@ -32,14 +32,16 @@ struct ReviewView: View {
             .padding(.top, 34)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .background(Theme.ground)
+        .background(Aurora(intensity: 0.8))
     }
 
     private var header: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("المراجعة")
-                    .font(.system(size: 30, weight: .bold))
+                    .font(.system(size: 36, weight: .black))
+                    .foregroundStyle(LinearGradient(colors: [.white, Color(hex: 0xFFB3CE)], startPoint: .top, endPoint: .bottom))
+                    .shadow(color: Theme.pen.opacity(0.4), radius: 16)
                 Text("التوقّعات اللي غلطت فيها، مع مكانها بالضبط على السلايد.")
                     .font(.system(size: 15))
                     .foregroundStyle(Theme.secondary)
@@ -48,7 +50,7 @@ struct ReviewView: View {
             Button { router.route = .player } label: {
                 Label("ابدأ المراجعة", systemImage: "play.fill")
             }
-            .buttonStyle(.filled(Theme.pen, height: 46))
+            .buttonStyle(.pen(height: 46))
             .disabled(items.isEmpty)
         }
     }
@@ -82,9 +84,8 @@ struct ReviewView: View {
 
     private var empty: some View {
         VStack(spacing: 10) {
-            Image(systemName: "checkmark.circle")
-                .font(.system(size: 40, weight: .regular))
-                .foregroundStyle(Theme.correct)
+            LogoSculpture()
+                .frame(width: 320, height: 260)
             Text("خلصت المراجعة")
                 .font(.system(size: 20, weight: .bold))
             Text("كل التوقّعات اللي غلطت فيها صارت واضحة.")
@@ -110,10 +111,11 @@ private struct ReviewRow: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Theme.muted)
                 Text(RichText.attributed(item.question))
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(Theme.ink)
                     .lineLimit(2)
                 HStack(spacing: 8) {
-                    StatusPill(text: "جوابك: " + RichText.ltr(item.yourAnswer), foreground: Theme.secondary, background: Theme.ground)
+                    StatusPill(text: "جوابك: " + RichText.ltr(item.yourAnswer), foreground: Theme.secondary, background: .white.opacity(0.07))
                     StatusPill(text: "الصحيح: " + RichText.ltr(item.correctAnswer), foreground: Theme.correctText, background: Theme.correctTint)
                 }
             }
@@ -129,15 +131,11 @@ private struct ReviewRow: View {
                     Label("فهمتها", systemImage: "checkmark")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.filled(Theme.ink, height: 44))
+                .buttonStyle(.primary(height: 44))
             }
             .frame(width: 150)
         }
         .padding(16)
-        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                .strokeBorder(Theme.line, lineWidth: 1)
-        )
+        .card(radius: Radius.card)
     }
 }

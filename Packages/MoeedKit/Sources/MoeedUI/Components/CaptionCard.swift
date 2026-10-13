@@ -14,7 +14,8 @@ struct CaptionCard: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 28, height: 28)
-                .background(Theme.pen, in: Circle())
+                .background(Theme.sunset, in: Circle())
+                .glow(Theme.pen, radius: 8, opacity: 0.7)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(phrases.enumerated()), id: \.offset) { index, phrase in
@@ -32,12 +33,14 @@ struct CaptionCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(16)
-        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                .strokeBorder(Theme.line, lineWidth: 1)
-        )
-        .shadow(color: Theme.ink.opacity(0.12), radius: 14, y: 6)
+        .background {
+            // Dark like film subtitles, so it reads the same over the white slide and over the night stage.
+            let shape = RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
+            shape.fill(Theme.surface.opacity(0.95))
+                .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.07), .clear], startPoint: .top, endPoint: .center)))
+                .overlay(shape.strokeBorder(Theme.edge, lineWidth: 1))
+                .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("الخطوة \(String(number))"))
     }

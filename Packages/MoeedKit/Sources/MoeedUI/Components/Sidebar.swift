@@ -14,7 +14,8 @@ struct Sidebar: View {
             HStack(spacing: 12) {
                 LogoSlot()
                 Text("مُعيد")
-                    .font(.system(size: 21, weight: .bold))
+                    .font(.system(size: 23, weight: .black))
+                    .foregroundStyle(LinearGradient(colors: [.white, Theme.mint], startPoint: .top, endPoint: .bottom))
             }
 
             VStack(spacing: 4) {
@@ -28,7 +29,8 @@ struct Sidebar: View {
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(minWidth: 24, minHeight: 22)
-                        .background(Theme.pen, in: Capsule())
+                        .background(Theme.sunset, in: Capsule())
+                        .glow(Theme.pen, radius: 8, opacity: 0.7)
                 }
                 NavRow(title: "أسئلتي", symbol: "questionmark.circle", isActive: false) {
                 } trailing: {
@@ -46,16 +48,18 @@ struct Sidebar: View {
                 HStack(spacing: 10) {
                     Text(verbatim: Samples.course.code)
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.onBright)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 2)
-                        .background(Theme.ink, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .background(Theme.brand, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                     Text(verbatim: Samples.course.name)
-                        .font(.system(size: 14.5, weight: .medium))
+                        .font(.system(size: 14.5, weight: .semibold))
+                        .foregroundStyle(Theme.ink)
                 }
                 .padding(.horizontal, 14)
                 .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                .background(Theme.ground, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Radius.control, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
                 Button { router.route = .importing } label: {
                     Label("أضف مادة", systemImage: "plus")
                         .font(.system(size: 14.5))
@@ -79,9 +83,11 @@ struct Sidebar: View {
         .padding(.vertical, 28)
         .frame(width: 248, alignment: .topLeading)
         .frame(maxHeight: .infinity, alignment: .top)
-        .background(Theme.sidebar)
+        .background(Theme.sidebar.opacity(0.72))
         .overlay(alignment: .trailing) {
-            Rectangle().fill(Theme.line).frame(width: 1)
+            Rectangle()
+                .fill(LinearGradient(colors: [Theme.mint.opacity(0.25), Theme.line, .clear], startPoint: .top, endPoint: .bottom))
+                .frame(width: 1)
         }
     }
 }
@@ -112,14 +118,18 @@ private struct NavRow<Trailing: View>: View {
                 Spacer(minLength: 0)
                 trailing
             }
-            .foregroundStyle(isActive ? Theme.ink : Theme.secondary)
+            .foregroundStyle(isActive ? Theme.mint : Theme.secondary)
             .padding(.horizontal, 14)
             .frame(height: 46)
             .background {
                 if isActive {
-                    RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        .fill(Theme.surface)
-                        .shadow(color: Theme.ink.opacity(0.06), radius: 6, y: 2)
+                    let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
+                    shape
+                        .fill(LinearGradient(colors: [Theme.teal.opacity(0.24), Theme.teal.opacity(0.06)], startPoint: .leading, endPoint: .trailing))
+                        .overlay(shape.strokeBorder(Theme.mint.opacity(0.28), lineWidth: 1))
+                        .overlay(alignment: .leading) {
+                            Capsule().fill(Theme.mint).frame(width: 3, height: 22).glow(Theme.mint, radius: 6, opacity: 0.9)
+                        }
                 }
             }
             .contentShape(Rectangle())

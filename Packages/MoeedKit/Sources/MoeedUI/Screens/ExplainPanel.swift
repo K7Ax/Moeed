@@ -22,7 +22,8 @@ struct ExplainPanel: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("اشرح هذا الجزء")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: 21, weight: .heavy))
+                    .foregroundStyle(Theme.ink)
                 Spacer()
                 StatusPill(text: "منطقة محدّدة", foreground: Theme.focus, background: Theme.focusTint)
             }
@@ -61,7 +62,8 @@ struct ExplainPanel: View {
                             .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(.white)
                             .frame(width: 36, height: 36)
-                            .background(Theme.pen, in: Circle())
+                            .background(Theme.sunset, in: Circle())
+                            .glow(Theme.pen, radius: 8)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("أرسل"))
@@ -69,10 +71,10 @@ struct ExplainPanel: View {
                 .padding(.leading, 16)
                 .padding(.trailing, 6)
                 .frame(height: 50)
-                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        .strokeBorder(Theme.line, lineWidth: 1)
+                        .strokeBorder(Theme.edge, lineWidth: 1)
                 )
                 Text("ينحفظ السؤال في «أسئلتي» مع مكانه على السلايد.")
                     .font(.system(size: 12.5))
@@ -90,6 +92,7 @@ struct ExplainPanel: View {
                 ForEach(Self.sampleAnswer, id: \.self) { line in
                     Text(RichText.attributed(line))
                         .font(.system(size: 16))
+                        .foregroundStyle(Theme.ink)
                         .lineSpacing(Theme.leading(for: 16) / 2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -98,14 +101,17 @@ struct ExplainPanel: View {
                 Button(action: onDraw) {
                     Label("ارسمها على السلايد", systemImage: "pencil.tip")
                 }
-                .buttonStyle(.filled(Theme.pen, height: 44))
+                .buttonStyle(.pen(height: 44))
                 Button {} label: { Text("ما زلت مو فاهم") }
                     .buttonStyle(.outline(height: 44))
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.ground, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+        .background(
+            LinearGradient(colors: [Theme.focus.opacity(0.12), .white.opacity(0.03)], startPoint: .top, endPoint: .bottom),
+            in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
+        )
     }
 
     private static let sampleAnswer = [

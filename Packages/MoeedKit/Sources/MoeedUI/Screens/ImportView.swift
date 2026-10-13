@@ -18,7 +18,8 @@ struct ImportView: View {
                 .buttonStyle(.outline(height: 44))
                 VStack(alignment: .leading, spacing: 2) {
                     Text("تجهيز المحاضرة")
-                        .font(.system(size: 19, weight: .bold))
+                        .font(.system(size: 19, weight: .heavy))
+                        .foregroundStyle(Theme.ink)
                     Text(verbatim: "\(job.courseCode) · \(job.fileName)")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.muted)
@@ -37,29 +38,30 @@ struct ImportView: View {
             .padding(.vertical, 24)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .background(Theme.ground)
+        .background(Aurora(intensity: 0.9))
     }
 
     // MARK: Status
 
     private var statusPanel: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 14) {
-                Image(systemName: "doc.richtext")
-                    .font(.system(size: 22))
-                    .foregroundStyle(Theme.ink)
-                    .frame(width: 48, height: 48)
-                    .background(Theme.ground, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(verbatim: job.fileName)
-                        .font(.system(size: 16, weight: .semibold))
-                    Text("\(String(job.slideCount)) سلايد · \(job.courseCode)")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.muted)
+            // The sculpture builds itself: one lit step for each finished stage.
+            LogoSculpture(litSteps: min(ImportStage.allCases.filter { $0 < job.stage }.count, 3))
+                .frame(height: 170)
+                .frame(maxWidth: .infinity)
+                .padding(.top, -10)
+                .overlay(alignment: .bottom) {
+                    VStack(spacing: 2) {
+                        Text(verbatim: job.fileName)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Theme.ink)
+                        Text("\(String(job.slideCount)) سلايد · \(job.courseCode)")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.muted)
+                    }
+                    .offset(y: 30)
                 }
-            }
-
-            Rectangle().fill(Theme.line).frame(height: 1)
+                .padding(.bottom, 30)
 
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(ImportStage.allCases, id: \.self) { stage in
@@ -79,7 +81,7 @@ struct ImportView: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.workingTint.opacity(0.6), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+            .background(Theme.workingTint, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
             Button { router.route = .player } label: {
                 HStack(spacing: 8) {
@@ -88,7 +90,7 @@ struct ImportView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.filled(Theme.pen))
+            .buttonStyle(.primary())
         }
         .padding(24)
         .frame(maxHeight: .infinity, alignment: .top)
@@ -105,7 +107,8 @@ struct ImportView: View {
         return VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 10) {
                 Text("السلايدات")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 17, weight: .heavy))
+                    .foregroundStyle(Theme.ink)
                 Text("\(String(job.scripted)) جاهزة من \(String(job.slideCount))")
                     .font(.system(size: 14))
                     .foregroundStyle(Theme.muted)
@@ -178,14 +181,16 @@ private struct StageRow: View {
         if isDone {
             Image(systemName: "checkmark")
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.onBright)
                 .frame(width: 24, height: 24)
                 .background(Theme.correct, in: Circle())
+                .glow(Theme.correct, radius: 6, opacity: 0.6)
         } else if isCurrent {
             Circle()
                 .strokeBorder(Theme.working, lineWidth: 2)
                 .overlay(Circle().fill(Theme.working).padding(6))
                 .frame(width: 24, height: 24)
+                .glow(Theme.working, radius: 8, opacity: 0.8)
         } else {
             Circle()
                 .strokeBorder(Theme.faint, lineWidth: 2)
@@ -252,9 +257,10 @@ private struct SlideThumb: View {
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .strokeBorder(state == .writing ? Theme.working : Theme.ink.opacity(0.12), lineWidth: state == .writing ? 1.5 : 0.5)
+                .strokeBorder(state == .writing ? Theme.working : .white.opacity(0.4), lineWidth: state == .writing ? 2 : 0.5)
         )
-        .opacity(state == .waiting ? 0.5 : 1)
+        .shadow(color: state == .writing ? Theme.working.opacity(0.6) : state == .ready ? Theme.teal.opacity(0.25) : .clear, radius: 10)
+        .opacity(state == .waiting ? 0.28 : 1)
         .environment(\.layoutDirection, .leftToRight)
         .accessibilityElement()
         .accessibilityLabel(Text("سلايد \(String(number))"))

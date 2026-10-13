@@ -4,21 +4,29 @@ import UIKit
 #endif
 
 struct FilledButtonStyle: ButtonStyle {
-    var background: Color
+    var fill: AnyShapeStyle
     var foreground: Color = .white
+    var glow: Color?
     var height: CGFloat = 48
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
         configuration.label
-            .font(.system(size: 16, weight: .semibold))
+            .font(.system(size: 16, weight: .bold))
             .foregroundStyle(foreground)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 22)
             .frame(minHeight: height)
-            .background(background, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-            .opacity(isEnabled ? (configuration.isPressed ? 0.85 : 1) : 0.4)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .background {
+                shape.fill(fill)
+                    // A sheen on the top half and a lit rim make it read as a raised, glossy key.
+                    .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.28), .white.opacity(0)], startPoint: .top, endPoint: .center)))
+                    .overlay(shape.strokeBorder(.white.opacity(0.22), lineWidth: 1))
+                    .shadow(color: (glow ?? .clear).opacity(isEnabled ? 0.5 : 0), radius: 18, y: 8)
+            }
+            .contentShape(shape)
+            .opacity(isEnabled ? (configuration.isPressed ? 0.88 : 1) : 0.4)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
     }
 }
@@ -27,18 +35,15 @@ struct OutlineButtonStyle: ButtonStyle {
     var height: CGFloat = 48
 
     func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
         configuration.label
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(Theme.ink)
             .padding(.horizontal, 16)
             .frame(minHeight: height)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                    .strokeBorder(Theme.line, lineWidth: 1)
-            )
-            .contentShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-            .opacity(configuration.isPressed ? 0.75 : 1)
+            .background(.white.opacity(configuration.isPressed ? 0.1 : 0.055), in: shape)
+            .overlay(shape.strokeBorder(Theme.edge, lineWidth: 1))
+            .contentShape(shape)
     }
 }
 
@@ -48,11 +53,12 @@ struct ChipButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(isSelected ? Color.white : Theme.ink)
+            .foregroundStyle(isSelected ? Theme.mint : Theme.secondary)
             .padding(.horizontal, 16)
             .frame(minHeight: 44)
-            .background(isSelected ? Theme.ink : Theme.surface, in: Capsule())
-            .overlay(Capsule().strokeBorder(isSelected ? Theme.ink : Theme.line, lineWidth: 1))
+            .background(isSelected ? Theme.teal.opacity(0.18) : .white.opacity(0.05), in: Capsule())
+            .overlay(Capsule().strokeBorder(isSelected ? Theme.mint.opacity(0.7) : Theme.line, lineWidth: 1))
+            .shadow(color: Theme.teal.opacity(isSelected ? 0.35 : 0), radius: 10)
             .contentShape(Capsule())
             .opacity(configuration.isPressed ? 0.8 : 1)
     }
@@ -60,7 +66,17 @@ struct ChipButtonStyle: ButtonStyle {
 
 extension ButtonStyle where Self == FilledButtonStyle {
     static func filled(_ background: Color = Theme.pen, foreground: Color = .white, height: CGFloat = 48) -> FilledButtonStyle {
-        FilledButtonStyle(background: background, foreground: foreground, height: height)
+        FilledButtonStyle(fill: AnyShapeStyle(background), foreground: foreground, glow: background, height: height)
+    }
+
+    /// The main action: lit with the logo's mint-to-ocean light.
+    static func primary(height: CGFloat = 48) -> FilledButtonStyle {
+        FilledButtonStyle(fill: AnyShapeStyle(Theme.brand), foreground: Theme.onBright, glow: Theme.teal, height: height)
+    }
+
+    /// The tutor's actions: the pen's pink running into coral.
+    static func pen(height: CGFloat = 48) -> FilledButtonStyle {
+        FilledButtonStyle(fill: AnyShapeStyle(Theme.sunset), foreground: .white, glow: Theme.pen, height: height)
     }
 }
 
@@ -72,24 +88,37 @@ extension ButtonStyle where Self == ChipButtonStyle {
     static func chip(selected: Bool) -> ChipButtonStyle { ChipButtonStyle(isSelected: selected) }
 }
 
-/// A thin progress bar that fills from the reading start (right in Arabic).
+/// A thin, glowing progress bar that fills from the reading start (right in Arabic).
 struct ProgressTrack: View {
     var value: Double
-    var tint: Color = Theme.pen
-    var track: Color = Theme.ground
+    var fill: AnyShapeStyle = AnyShapeStyle(Theme.brandFlat)
+    var glow: Color = Theme.teal
     var height: CGFloat = 8
+
+    init(value: Double, height: CGFloat = 8) {
+        self.value = value
+        self.height = height
+    }
+
+    init(value: Double, tint: Color, height: CGFloat = 8) {
+        self.value = value
+        self.fill = AnyShapeStyle(tint)
+        self.glow = tint
+        self.height = height
+    }
 
     var body: some View {
         GeometryReader { geo in
             HStack(spacing: 0) {
                 Capsule()
-                    .fill(tint)
+                    .fill(fill)
                     .frame(width: geo.size.width * CGFloat(min(max(value, 0), 1)))
+                    .shadow(color: glow.opacity(0.6), radius: 6)
                 Spacer(minLength: 0)
             }
         }
         .frame(height: height)
-        .background(track, in: Capsule())
+        .background(.white.opacity(0.08), in: Capsule())
         .accessibilityElement()
         .accessibilityValue(Text("\(Int(value * 100))٪"))
     }
@@ -174,7 +203,30 @@ struct LogoSlot: View {
     }
 
     private var placeholder: some View {
-        RoundedRectangle(cornerRadius: size * 0.23, style: .continuous)
-            .fill(Theme.ink)
+        ZStack {
+            RoundedRectangle(cornerRadius: size * 0.23, style: .continuous)
+                .fill(LinearGradient(colors: [Theme.navy, Theme.ocean.opacity(0.9)], startPoint: .bottomLeading, endPoint: .topTrailing))
+            ArchShape()
+                .stroke(Theme.mint, style: StrokeStyle(lineWidth: size * 0.07, lineCap: .round))
+                .frame(width: size * 0.56, height: size * 0.66)
+                .offset(y: size * 0.05)
+            Image(systemName: "play.fill")
+                .font(.system(size: size * 0.24, weight: .bold))
+                .foregroundStyle(Theme.mint)
+                .offset(x: size * 0.02, y: size * 0.1)
+        }
+    }
+}
+
+/// An open arch: two legs and a round top.
+struct ArchShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let r = rect.width / 2
+        p.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY + r))
+        p.addArc(center: CGPoint(x: rect.midX, y: rect.minY + r), radius: r, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        return p
     }
 }

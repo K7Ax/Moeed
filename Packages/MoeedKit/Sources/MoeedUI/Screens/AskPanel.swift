@@ -17,11 +17,15 @@ struct AskPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("توقّع قبل لا تكمل")
-                    .font(.system(size: 13, weight: .semibold))
+                Label("توقّع قبل لا تكمل", systemImage: "sparkles")
+                    .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Theme.pen)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Theme.penTint, in: Capsule())
                 Text(RichText.attributed(ask.question))
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 24, weight: .heavy))
+                    .foregroundStyle(Theme.ink)
                     .lineSpacing(Theme.leading(for: 24) / 2)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("اختر جوابك، بعدها نكمل الرسم ونشوف.")
@@ -88,7 +92,7 @@ struct AskPanel: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(model.pickedRight ? Theme.correctTint : Theme.ground,
+            .background(model.pickedRight ? Theme.correctTint : Theme.penTint,
                         in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             .transition(.opacity.combined(with: .offset(y: 6)))
         } else if showHint {
@@ -104,7 +108,7 @@ struct AskPanel: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.ground, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+            .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             .transition(.opacity)
         }
     }
@@ -119,7 +123,7 @@ struct AskPanel: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.filled(Theme.pen))
+            .buttonStyle(.primary())
         } else {
             HStack(spacing: 10) {
                 Button { model.showAnswer() } label: {
@@ -151,7 +155,7 @@ private struct OptionRow: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Text(verbatim: RichText.ltr(option.label))
-                    .font(.system(size: 21, weight: .semibold))
+                    .font(.system(size: 21, weight: .bold))
                     .foregroundStyle(state == .right ? Theme.correctText : Theme.ink)
                     .padding(.horizontal, 10)
                     .overlay {
@@ -186,14 +190,14 @@ private struct OptionRow: View {
     private var circled: Bool { state == .right || state == .revealed }
 
     private var background: Color {
-        state == .right ? Theme.correctTint : Theme.surface
+        state == .right ? Theme.correctTint : .white.opacity(0.05)
     }
 
     private var border: Color {
         switch state {
         case .right: return Theme.correct
         case .yourPick: return Theme.faint
-        default: return Theme.line
+        default: return .white.opacity(0.12)
         }
     }
 
@@ -207,7 +211,7 @@ private struct OptionRow: View {
         case .revealed:
             StatusPill(text: "الصحيح", foreground: Theme.pen, background: Theme.penTint)
         case .yourPick:
-            StatusPill(text: "اختيارك", foreground: Theme.secondary, background: Theme.ground)
+            StatusPill(text: "اختيارك", foreground: Theme.secondary, background: .white.opacity(0.08))
         case .open, .other:
             EmptyView()
         }
