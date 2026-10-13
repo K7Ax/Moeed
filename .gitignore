@@ -4,5 +4,5 @@
 DerivedData/
 *.xcodeproj
 xcuserdata/
-snapshots/
-Build/
+/snapshots/
+/Build/
