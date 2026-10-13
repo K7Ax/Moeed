@@ -1,7 +1,8 @@
 import SwiftUI
 import MoeedCore
 
-/// One slide, explained step by step: ink on the slide, words beside it, a question before each reveal.
+/// One slide, explained step by step: red pen on the printed page, words on a slip beside it,
+/// a question before each reveal.
 struct PlayerView: View {
     @Environment(AppRouter.self) private var router
     @Bindable private var model: PlayerModel
@@ -16,13 +17,14 @@ struct PlayerView: View {
         VStack(spacing: 0) {
             topBar
             content
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 18)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             PlayerControls(model: model)
+                .padding(.horizontal, 28)
                 .padding(.bottom, 18)
         }
-        .background(Aurora(intensity: 0.55))
+        .background(Desk())
         .onAppear {
             if !model.isSettled { model.play() }
         }
@@ -31,42 +33,53 @@ struct PlayerView: View {
     // MARK: Top bar
 
     private var topBar: some View {
-        HStack(spacing: 16) {
-            Button { router.route = .library } label: {
-                Label("المكتبة", systemImage: "chevron.backward")
-            }
-            .buttonStyle(.outline(height: 44))
+        VStack(spacing: 0) {
+            HStack(spacing: 20) {
+                Button { router.route = .library } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.backward")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("المكتبة")
+                    }
+                }
+                .buttonStyle(.underlined)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: model.page.title)
-                    .font(.system(size: 19, weight: .heavy))
-                    .foregroundStyle(Theme.ink)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(verbatim: model.page.title)
+                        .font(Theme.text(20, .heavy))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                    HStack(spacing: 6) {
+                        Text(verbatim: model.page.deckTitle)
+                            .font(Theme.serif(13.5))
+                            .italic()
+                        Text("· سلايد \(String(model.page.id)) من \(String(model.page.deckPageCount))")
+                            .font(Theme.text(13))
+                    }
+                    .foregroundStyle(Theme.inkSoft)
                     .lineLimit(1)
-                Text("\(model.page.deckTitle) · سلايد \(String(model.page.id)) من \(String(model.page.deckPageCount))")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.muted)
-                    .lineLimit(1)
-            }
+                }
 
-            Spacer(minLength: 12)
+                Spacer(minLength: 12)
 
-            HStack(spacing: 4) {
-                LayerToggle(title: "الحبر", symbol: "pencil.tip", isOn: $model.showInk)
-                LayerToggle(title: "النص", symbol: "text.alignright", isOn: $model.showText)
-            }
-            .padding(4)
-            .background(.white.opacity(0.05), in: Capsule())
-            .overlay(Capsule().strokeBorder(Theme.edge, lineWidth: 1))
+                HStack(spacing: 14) {
+                    LayerToggle(title: "الحبر", isOn: $model.showInk)
+                    LayerToggle(title: "النص", isOn: $model.showText)
+                }
 
-            Button {
-                withAnimation(.snappy(duration: 0.3)) { explaining.toggle() }
-            } label: {
-                Label(explaining ? "رجوع للشرح" : "اشرح هذا", systemImage: explaining ? "xmark" : "viewfinder")
+                Button {
+                    withAnimation(.snappy(duration: 0.3)) { explaining.toggle() }
+                } label: {
+                    Label(explaining ? "رجوع للشرح" : "اشرح هذا", systemImage: explaining ? "xmark" : "viewfinder")
+                }
+                .buttonStyle(explaining ? AnyButtonStyle(InkButtonStyle.ink(height: 44)) : AnyButtonStyle(OutlineButtonStyle.outline(height: 44)))
             }
-            .buttonStyle(explaining ? FilledButtonStyle.filled(Theme.focus, height: 44) : FilledButtonStyle.primary(height: 44))
+            .padding(.horizontal, 28)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+            Hairline(color: Theme.ink.opacity(0.35))
+                .padding(.horizontal, 28)
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 18)
     }
 
     // MARK: Content
@@ -74,18 +87,18 @@ struct PlayerView: View {
     @ViewBuilder
     private var content: some View {
         if explaining {
-            HStack(alignment: .top, spacing: 20) {
+            HStack(alignment: .top, spacing: 26) {
                 stage(selection: Samples.explainSelection)
                 ExplainPanel(page: model.page, selection: Samples.explainSelection) {
                     withAnimation(.snappy(duration: 0.3)) { explaining = false }
                 }
-                .frame(width: 430)
+                .frame(width: 420)
             }
         } else if let ask = model.step.ask {
-            HStack(alignment: .top, spacing: 20) {
+            HStack(alignment: .top, spacing: 26) {
                 stage()
                 AskPanel(model: model, ask: ask)
-                    .frame(width: 420)
+                    .frame(width: 410)
             }
         } else {
             watching
@@ -111,7 +124,7 @@ struct PlayerView: View {
                         placement: placement
                     ) : nil)
                 } else {
-                    VStack(spacing: 18) {
+                    VStack(spacing: 22) {
                         stage()
                             .frame(width: fitWidth, height: min(fitWidth / aspect, geo.size.height - 170))
                         if model.showText {
@@ -140,62 +153,75 @@ struct PlayerView: View {
     }
 }
 
+/// Lets the top bar swap between two button styles without a type mismatch.
+struct AnyButtonStyle: ButtonStyle {
+    private let make: (Configuration) -> AnyView
+
+    init<S: ButtonStyle>(_ style: S) {
+        make = { AnyView(style.makeBody(configuration: $0)) }
+    }
+
+    func makeBody(configuration: Configuration) -> some View { make(configuration) }
+}
+
 // MARK: - Controls
 
+/// A box ticked in red pen, as on an exam sheet.
 private struct LayerToggle: View {
     var title: LocalizedStringKey
-    var symbol: String
     @Binding var isOn: Bool
 
     var body: some View {
         Button {
             withAnimation(.snappy(duration: 0.2)) { isOn.toggle() }
         } label: {
-            Label(title, systemImage: symbol)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(isOn ? Theme.mint : Theme.muted)
-                .padding(.horizontal, 14)
-                .frame(height: 36)
-                .background(isOn ? Theme.teal.opacity(0.2) : Color.clear, in: Capsule())
-                .overlay(Capsule().strokeBorder(isOn ? Theme.mint.opacity(0.45) : .clear, lineWidth: 1))
-                .contentShape(Capsule())
+            HStack(spacing: 7) {
+                PenCheckbox(isOn: isOn)
+                Text(title)
+                    .font(Theme.text(14.5, .semibold))
+                    .foregroundStyle(isOn ? Theme.ink : Theme.mark)
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 
+/// The step controls, printed on a strip of card along the bottom of the desk.
 struct PlayerControls: View {
     var model: PlayerModel
 
     var body: some View {
-        HStack(spacing: 12) {
-            RoundIconButton(symbol: "chevron.backward", label: "الخطوة السابقة") { model.previous() }
+        HStack(spacing: 14) {
+            SquareIconButton(symbol: "chevron.backward", label: "الخطوة السابقة") { model.previous() }
                 .disabled(model.isFirst)
 
-            StepScrubber(
+            StepRuler(
                 count: model.stepCount,
                 current: model.stepIndex,
                 askSteps: Set(model.page.steps.indices.filter { model.page.steps[$0].ask != nil })
             ) { model.go(to: $0) }
 
             Text("\(String(model.stepIndex + 1)) من \(String(model.stepCount))")
-                .font(.system(size: 14, weight: .semibold).monospacedDigit())
-                .foregroundStyle(Theme.secondary)
+                .font(Theme.serif(15, .semibold).monospacedDigit())
+                .foregroundStyle(Theme.ink)
                 .frame(minWidth: 52)
 
             Button { model.next() } label: {
                 HStack(spacing: 6) {
                     Text("التالي")
                     Image(systemName: "chevron.forward")
+                        .font(.system(size: 12, weight: .bold))
                 }
             }
-            .buttonStyle(.pen(height: 44))
+            .buttonStyle(.ink(height: 44))
             .disabled(model.isLast || (model.step.ask != nil && !model.isAnswered))
 
-            Rectangle().fill(Theme.line).frame(width: 1, height: 28)
+            Rectangle().fill(Theme.rule).frame(width: 0.75, height: 30)
 
-            RoundIconButton(symbol: "arrow.counterclockwise", label: "أعد الخطوة") { model.play() }
+            SquareIconButton(symbol: "arrow.counterclockwise", label: "أعد الخطوة") { model.play() }
 
             Button { model.toggleAuto() } label: {
                 Label("تلقائي", systemImage: model.isAuto ? "pause.fill" : "play.fill")
@@ -204,26 +230,21 @@ struct PlayerControls: View {
 
             Button { model.cycleSpeed() } label: {
                 Text(verbatim: model.speedLabel)
-                    .font(.system(size: 14, weight: .bold).monospacedDigit())
+                    .font(Theme.serif(14, .bold).monospacedDigit())
                     .frame(minWidth: 26)
             }
             .buttonStyle(.chip(selected: false))
             .accessibilityLabel(Text("السرعة"))
             .accessibilityValue(Text(verbatim: model.speedLabel))
         }
-        .padding(.horizontal, 12)
-        .frame(height: 66)
-        .background {
-            Capsule().fill(Theme.surface.opacity(0.94))
-                .overlay(Capsule().fill(LinearGradient(colors: [.white.opacity(0.08), .clear], startPoint: .top, endPoint: .center)))
-                .overlay(Capsule().strokeBorder(Theme.edge, lineWidth: 1))
-                .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
-                .shadow(color: Theme.teal.opacity(0.18), radius: 30)
-        }
+        .padding(.horizontal, 14)
+        .frame(height: 64)
+        .paperSheet(Theme.card, lift: 0.8)
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 
-private struct RoundIconButton: View {
+private struct SquareIconButton: View {
     var symbol: String
     var label: LocalizedStringKey
     var action: () -> Void
@@ -232,38 +253,41 @@ private struct RoundIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Theme.ink)
                 .frame(width: 44, height: 44)
-                .background(.white.opacity(0.07), in: Circle())
-                .overlay(Circle().strokeBorder(Theme.line, lineWidth: 1))
-                .contentShape(Circle())
+                .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1))
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .opacity(isEnabled ? 1 : 0.35)
+        .opacity(isEnabled ? 1 : 0.3)
         .accessibilityLabel(Text(label))
     }
 }
 
-/// One segment per step; question steps are rings so you can see where the predictions are.
-struct StepScrubber: View {
+/// The steps as marks on a ruler. Done steps are inked; the current one carries the red pen;
+/// question steps are ringed so you can see where the predictions are.
+struct StepRuler: View {
     var count: Int
     var current: Int
     var askSteps: Set<Int>
     var onSelect: (Int) -> Void
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 0) {
             ForEach(0..<count, id: \.self) { index in
                 Button { onSelect(index) } label: {
-                    segment(index)
-                        .frame(maxWidth: askSteps.contains(index) ? 14 : .infinity, minHeight: 44)
+                    tick(index)
+                        .frame(maxWidth: .infinity, minHeight: 44)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
         }
-        .frame(width: 250)
+        .frame(width: 270)
+        .background(alignment: .bottom) {
+            Hairline(color: Theme.ink, weight: 1).padding(.bottom, 9)
+        }
         .sensoryFeedback(.selection, trigger: current)
         .accessibilityElement()
         .accessibilityLabel(Text("الخطوات"))
@@ -277,19 +301,23 @@ struct StepScrubber: View {
         }
     }
 
-    @ViewBuilder
-    private func segment(_ index: Int) -> some View {
-        let color = index <= current ? Theme.mint : Theme.faint.opacity(0.7)
-        if askSteps.contains(index) {
-            Circle()
-                .strokeBorder(index <= current ? Theme.pen : Theme.faint, lineWidth: 2.5)
-                .frame(width: 12, height: 12)
-                .glow(Theme.pen, radius: 5, opacity: index <= current ? 0.9 : 0)
-        } else {
-            Capsule()
-                .fill(color)
-                .frame(height: index == current ? 8 : 5)
-                .glow(Theme.mint, radius: 5, opacity: index <= current ? 0.7 : 0)
+    private func tick(_ index: Int) -> some View {
+        let done = index <= current
+        let isAsk = askSteps.contains(index)
+        return VStack(spacing: 0) {
+            Spacer(minLength: 0)
+            ZStack(alignment: .bottom) {
+                Rectangle()
+                    .fill(index == current ? Theme.red : (done ? Theme.ink : Theme.mark.opacity(0.6)))
+                    .frame(width: index == current ? 3 : 1.5, height: index == current ? 24 : (isAsk ? 16 : 11))
+                if isAsk {
+                    InkEllipse()
+                        .stroke(done ? Theme.red : Theme.mark, style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
+                        .frame(width: 16, height: 12)
+                        .offset(y: -18)
+                }
+            }
+            .padding(.bottom, 9)
         }
     }
 }

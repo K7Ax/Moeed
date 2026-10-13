@@ -59,7 +59,7 @@ private struct CaptionOverlay: View {
                     p.move(to: CGPoint(x: CGFloat(start.x) * scale, y: CGFloat(start.y) * scale))
                     p.addLine(to: CGPoint(x: CGFloat(anchor.x) * scale, y: CGFloat(anchor.y) * scale))
                 }
-                .stroke(Theme.pen.opacity(0.7), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [6, 7]))
+                .stroke(Theme.red.opacity(0.75), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [6, 7]))
                 .opacity(caption.revealed > 0 ? 1 : 0)
             }
             CaptionCard(number: caption.number, phrases: caption.phrases, revealed: caption.revealed)
@@ -82,10 +82,10 @@ private struct SelectionOverlay: View {
         )
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 10 * scale, style: .continuous)
-                .fill(Theme.focus.opacity(0.08))
+                .fill(Theme.blueTint)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10 * scale, style: .continuous)
-                        .strokeBorder(Theme.focus, style: StrokeStyle(lineWidth: 2.5, dash: [8, 6]))
+                        .strokeBorder(Theme.blue, style: StrokeStyle(lineWidth: 2.5, dash: [8, 6]))
                 )
                 .frame(width: frame.width, height: frame.height)
                 .offset(x: frame.minX, y: frame.minY)
@@ -97,7 +97,7 @@ private struct SelectionOverlay: View {
 
     private var handle: some View {
         Circle()
-            .fill(Theme.focus)
+            .fill(Theme.blue)
             .overlay(Circle().strokeBorder(.white, lineWidth: 2))
             .frame(width: 16, height: 16)
     }

@@ -1,50 +1,34 @@
 import SwiftUI
 
-/// Design tokens: "deep ocean", taken from the logo. Navy-black ground, teal and mint light,
-/// one hot pen that clashes with the teal on purpose so the tutor's ink always wins.
+/// Design tokens: «الملزمة», the photocopied lecture packet a معيد goes through with you.
+/// Everything is something you could find on a study desk: paper stock, black toner,
+/// the tutor's red pen, your own blue ballpoint, and a yellow highlighter. No glow, no glass.
 enum Theme {
-    // Surfaces
-    static let abyss = Color(hex: 0x030812)
-    static let ground = Color(hex: 0x060E1F)
-    static let surface = Color(hex: 0x0C1831)
-    static let raised = Color(hex: 0x132546)
-    static let sidebar = Color(hex: 0x050C1B)
-    static let line = Color.white.opacity(0.09)
-    static let faint = Color(hex: 0x3A4C6E)
+    // Stock
+    static let desk = Color(hex: 0xD9CFBD)
+    static let paper = Color(hex: 0xF5EFE3)
+    static let paperShade = Color(hex: 0xECE4D4)
+    static let card = Color(hex: 0xFBF8F1)
 
-    // Text
-    static let ink = Color(hex: 0xF2F7FF)
-    static let secondary = Color(hex: 0xAEBBD6)
-    static let muted = Color(hex: 0x7B8CAE)
-    static let onBright = Color(hex: 0x021320)
-    static let onDark = Color(hex: 0xC9D4E8)
+    // Toner
+    static let ink = Color(hex: 0x171513)
+    static let inkSoft = Color(hex: 0x56504A)
+    static let mark = Color(hex: 0x8C8579)
+    static let rule = Color(hex: 0xCBC2B2)
+    static let hole = Color(hex: 0xBDB19C)
 
-    // Brand light, from the logo
-    static let mint = Color(hex: 0x7CF7DE)
-    static let teal = Color(hex: 0x18C6B3)
-    static let ocean = Color(hex: 0x2E7BFF)
-    static let navy = Color(hex: 0x0B2A5E)
-    static let brand = LinearGradient(colors: [mint, teal, ocean], startPoint: .topLeading, endPoint: .bottomTrailing)
-    static let brandFlat = LinearGradient(colors: [mint, teal], startPoint: .leading, endPoint: .trailing)
+    // Pens. Red is the tutor's: it marks what to look at, never "wrong".
+    static let red = Color(hex: 0xC23B22)
+    static let redTint = Color(hex: 0xC23B22, opacity: 0.09)
+    /// The student's own ballpoint: your picks, your questions.
+    static let blue = Color(hex: 0x24418F)
+    static let blueTint = Color(hex: 0x24418F, opacity: 0.08)
+    static let highlighter = Color(hex: 0xF3D13A)
+    /// Rubber-stamp teal, from the logo: done, ready, understood.
+    static let stamp = Color(hex: 0x0F5B63)
+    static let spotlight = Color(hex: 0x171513, opacity: 0.5)
 
-    // The pen. It marks what to look at — never "wrong".
-    static let pen = Color(hex: 0xFF3D81)
-    static let penTint = Color(hex: 0xFF3D81).opacity(0.16)
-    static let sunset = LinearGradient(colors: [Color(hex: 0xFF3D81), Color(hex: 0xFF8A4C)], startPoint: .leading, endPoint: .trailing)
-    static let highlighter = Color(hex: 0xFFD43B)
-    static let spotlight = Color(hex: 0x050C1B).opacity(0.6)
-
-    // States
-    static let correct = Color(hex: 0x3BE8A0)
-    static let correctText = Color(hex: 0x86F5C6)
-    static let correctTint = Color(hex: 0x3BE8A0).opacity(0.14)
-    static let working = Color(hex: 0xFFB547)
-    static let workingText = Color(hex: 0xFFCB7D)
-    static let workingTint = Color(hex: 0xFFB547).opacity(0.14)
-    static let focus = Color(hex: 0x5B9BFF)
-    static let focusTint = Color(hex: 0x5B9BFF).opacity(0.16)
-
-    // Sample slide (a white document, so these stay dark-on-light)
+    // Sample slide (a printed page, so these stay dark-on-light)
     static let slideTitle = Color(hex: 0x1C3D6E)
     static let slideInk = Color(hex: 0x1F2328)
     static let slideLabel = Color(hex: 0x3B424A)
@@ -53,18 +37,21 @@ enum Theme {
     static let slideGuide = Color(hex: 0x9AA3AE)
     static let slideWave = Color(hex: 0x2F6DB5)
 
+    /// One family for Arabic: hierarchy is weight and size, never a second face.
+    static func text(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight)
+    }
+
+    /// Latin, codes and figures are set the way a paper sets them: in a serif.
+    static func serif(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight, design: .serif)
+    }
+
     /// The tutor's handwriting for ink labels.
     static func handwriting(size: CGFloat) -> Font { .custom("Noteworthy-Bold", size: size) }
 
     /// Arabic needs generous leading (~1.4).
     static func leading(for size: CGFloat) -> CGFloat { size * 0.4 }
-}
-
-enum Radius {
-    static let slide: CGFloat = 8
-    static let control: CGFloat = 14
-    static let card: CGFloat = 20
-    static let panel: CGFloat = 26
 }
 
 extension Color {
@@ -79,88 +66,181 @@ extension Color {
     }
 }
 
+// MARK: - Paper
+
 extension View {
-    /// A glass panel: deep fill, a sheen from the top, and a lit edge.
-    /// Drawn with gradients rather than materials so it looks the same in renders.
-    func card(radius: CGFloat = Radius.panel, tint: Color = Theme.surface) -> some View {
+    /// A sheet of paper lying on the desk: square corners, grain, and the tight shadow paper actually casts.
+    func paperSheet(_ stock: Color = Theme.paper, lift: CGFloat = 1) -> some View {
         background {
-            let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-            shape
-                .fill(tint.opacity(0.92))
-                .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.075), .white.opacity(0.0)], startPoint: .top, endPoint: .center)))
-                .overlay(shape.strokeBorder(Theme.edge, lineWidth: 1))
-                .shadow(color: .black.opacity(0.45), radius: 26, y: 16)
+            ZStack {
+                Rectangle().fill(stock)
+                Grain(density: 0.6)
+            }
+            .overlay(Rectangle().strokeBorder(Theme.ink.opacity(0.07), lineWidth: 0.5))
+            .shadow(color: Theme.ink.opacity(0.18), radius: 0.6 * lift, y: 0.6 * lift)
+            .shadow(color: Theme.ink.opacity(0.12), radius: 9 * lift, x: 0, y: 5 * lift)
         }
     }
 
-    /// A slide is a white screen in a dark room: crisp edge, teal light spilling under it.
-    func slideFrame(glow: Bool = true) -> some View {
-        // The light comes from a shape behind the slide, so it never bleeds onto the slide's own text.
-        clipShape(RoundedRectangle(cornerRadius: Radius.slide, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.slide, style: .continuous)
-                    .strokeBorder(.white.opacity(0.6), lineWidth: 0.5)
-            )
+    /// A slide printed into the packet: the page itself, with a hairline where the copier caught the edge.
+    func slideFrame() -> some View {
+        overlay(Rectangle().strokeBorder(Theme.ink.opacity(0.18), lineWidth: 0.75))
             .background {
-                RoundedRectangle(cornerRadius: Radius.slide, style: .continuous)
-                    .fill(.white)
-                    .shadow(color: Theme.teal.opacity(glow ? 0.3 : 0), radius: 38, y: 18)
-                    .shadow(color: .black.opacity(0.5), radius: 12, y: 6)
+                Rectangle().fill(.white)
+                    .shadow(color: Theme.ink.opacity(0.2), radius: 0.8, y: 0.8)
+                    .shadow(color: Theme.ink.opacity(0.14), radius: 14, y: 8)
             }
     }
 
-    /// Soft coloured light under bright controls.
-    func glow(_ color: Color, radius: CGFloat = 16, opacity: Double = 0.45) -> some View {
-        shadow(color: color.opacity(opacity), radius: radius, y: radius / 3)
+    /// A strip of clear tape holding something down.
+    func taped(_ alignment: Alignment = .top, angle: Double = -4) -> some View {
+        overlay(alignment: alignment) {
+            Tape().rotationEffect(.degrees(angle)).offset(y: alignment == .top ? -9 : 0)
+        }
     }
 }
 
-extension Theme {
-    /// The lit edge of glass: bright at the top-leading corner, fading with a hint of teal.
-    static let edge = LinearGradient(
-        colors: [.white.opacity(0.22), .white.opacity(0.05), Theme.teal.opacity(0.18)],
-        startPoint: .topLeading, endPoint: .bottomTrailing
-    )
-}
-
-// MARK: - Background
-
-/// Night-sea aurora: three pools of light over navy-black, and a little dust to give it depth.
-struct Aurora: View {
-    var intensity: Double = 1
-
+/// The desk under the packet.
+struct Desk: View {
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Theme.ground, Theme.abyss], startPoint: .top, endPoint: .bottom)
-            EllipticalGradient(colors: [Theme.teal.opacity(0.32 * intensity), .clear],
-                               center: UnitPoint(x: 0.92, y: -0.05), startRadiusFraction: 0, endRadiusFraction: 0.62)
-            EllipticalGradient(colors: [Theme.ocean.opacity(0.30 * intensity), .clear],
-                               center: UnitPoint(x: 0.05, y: 1.05), startRadiusFraction: 0, endRadiusFraction: 0.66)
-            EllipticalGradient(colors: [Theme.pen.opacity(0.12 * intensity), .clear],
-                               center: UnitPoint(x: 0.42, y: 0.38), startRadiusFraction: 0, endRadiusFraction: 0.42)
-            Dust()
+            Theme.desk
+            Grain(density: 1.2)
         }
         .ignoresSafeArea()
         .accessibilityHidden(true)
     }
 }
 
-/// Fixed, seeded specks of light.
-private struct Dust: View {
+/// Paper grain and toner specks, seeded so every render is the same.
+struct Grain: View {
+    var density: Double = 1
+
     var body: some View {
         Canvas { context, size in
-            var seed: UInt64 = 0x9E3779B97F4A7C15
+            var seed: UInt64 = 0x2545F4914F6CDD1D
             func next() -> Double {
                 seed ^= seed << 13; seed ^= seed >> 7; seed ^= seed << 17
                 return Double(seed % 10_000) / 10_000
             }
-            for _ in 0..<140 {
+            let count = Int(size.width * size.height / 900 * density)
+            for _ in 0..<min(count, 6000) {
                 let x = next() * size.width
                 let y = next() * size.height
-                let r = 0.4 + next() * 1.3
-                let a = 0.04 + next() * 0.22
-                context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: r * 2, height: r * 2)),
-                             with: .color(.white.opacity(a)))
+                let r = 0.3 + next() * 0.7
+                let dark = next() > 0.35
+                context.fill(
+                    Path(ellipseIn: CGRect(x: x, y: y, width: r * 2, height: r * 2)),
+                    with: .color(dark ? Theme.ink.opacity(0.035 + next() * 0.05) : .white.opacity(0.25))
+                )
+            }
+            // A few long fibres in the stock.
+            for _ in 0..<min(Int(Double(count) / 60), 120) {
+                let x = next() * size.width
+                let y = next() * size.height
+                let a = next() * .pi
+                let l = 4 + next() * 10
+                var p = Path()
+                p.move(to: CGPoint(x: x, y: y))
+                p.addLine(to: CGPoint(x: x + cos(a) * l, y: y + sin(a) * l))
+                context.stroke(p, with: .color(Theme.ink.opacity(0.04)), lineWidth: 0.5)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+/// A short piece of matte tape.
+struct Tape: View {
+    var width: CGFloat = 64
+
+    var body: some View {
+        Rectangle()
+            .fill(Color(hex: 0xEDE6D3, opacity: 0.78))
+            .overlay(Rectangle().strokeBorder(.white.opacity(0.5), lineWidth: 0.5))
+            .frame(width: width, height: 20)
+            .shadow(color: Theme.ink.opacity(0.08), radius: 1, y: 0.5)
+            .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Rules
+
+/// A printed hairline.
+struct Hairline: View {
+    var color: Color = Theme.ink
+    var weight: CGFloat = 0.75
+
+    var body: some View {
+        Rectangle().fill(color).frame(height: weight)
+    }
+}
+
+/// The masthead's thick-over-thin rule.
+struct DoubleRule: View {
+    var body: some View {
+        VStack(spacing: 2.5) {
+            Rectangle().fill(Theme.ink).frame(height: 2.5)
+            Rectangle().fill(Theme.ink).frame(height: 0.75)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// A column rule between two columns of a page.
+struct ColumnRule: View {
+    var body: some View {
+        Rectangle().fill(Theme.rule).frame(width: 0.75)
+    }
+}
+
+/// The dotted leader of a table of contents: «المحاضرة الخامسة ........ ص ١٦».
+struct Leader: View {
+    var body: some View {
+        Line()
+            .stroke(Theme.mark, style: StrokeStyle(lineWidth: 1.2, lineCap: .round, dash: [0.1, 5]))
+            .frame(height: 2)
+            .frame(minWidth: 16)
+            .accessibilityHidden(true)
+    }
+
+    private struct Line: Shape {
+        func path(in rect: CGRect) -> Path {
+            var p = Path()
+            p.move(to: CGPoint(x: rect.minX, y: rect.midY))
+            p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+            return p
+        }
+    }
+}
+
+/// A highlighter swipe: uneven ends, a little off the baseline, multiplied into the paper.
+struct HighlighterSwipe: Shape {
+    var seed: Int = 0
+
+    func path(in rect: CGRect) -> Path {
+        let s = Double(seed % 5)
+        var p = Path()
+        p.move(to: CGPoint(x: rect.minX + 2, y: rect.minY + rect.height * 0.12))
+        p.addLine(to: CGPoint(x: rect.maxX - 1, y: rect.minY + rect.height * (0.05 + s * 0.02)))
+        p.addLine(to: CGPoint(x: rect.maxX + 2, y: rect.maxY - rect.height * 0.08))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - rect.height * (0.02 + s * 0.015)))
+        p.closeSubpath()
+        return p
+    }
+}
+
+extension View {
+    /// Marks text with the highlighter.
+    func highlighted(_ on: Bool = true, seed: Int = 0) -> some View {
+        background {
+            if on {
+                HighlighterSwipe(seed: seed)
+                    .fill(Theme.highlighter.opacity(0.62))
+                    .padding(.horizontal, -5)
+                    .padding(.vertical, 1)
+                    .blendMode(.multiply)
             }
         }
     }

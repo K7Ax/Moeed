@@ -1,6 +1,7 @@
 import SwiftUI
 import MoeedCore
 
+/// The packet's index page, bound to the rest by a wire coil.
 struct Sidebar: View {
     @Environment(AppRouter.self) private var router
     var reviewCount: Int
@@ -10,131 +11,153 @@ struct Sidebar: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
-            HStack(spacing: 12) {
-                LogoSlot()
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: 10) {
+                LogoSlot(size: 34)
                 Text("مُعيد")
-                    .font(.system(size: 23, weight: .black))
-                    .foregroundStyle(LinearGradient(colors: [.white, Theme.mint], startPoint: .top, endPoint: .bottom))
+                    .font(Theme.text(30, .black))
+                    .foregroundStyle(Theme.ink)
             }
+            Text("ملزمة الشرح")
+                .font(Theme.text(12.5, .medium))
+                .foregroundStyle(Theme.inkSoft)
+                .padding(.top, 6)
+            DoubleRule()
+                .padding(.top, 14)
 
-            VStack(spacing: 4) {
-                NavRow(title: "المكتبة", symbol: "books.vertical", isActive: router.route == .library) {
-                    router.route = .library
-                }
-                NavRow(title: "المراجعة", symbol: "arrow.counterclockwise", isActive: router.route == .review) {
-                    router.route = .review
-                } trailing: {
-                    Text(verbatim: String(reviewCount))
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(minWidth: 24, minHeight: 22)
-                        .background(Theme.sunset, in: Capsule())
-                        .glow(Theme.pen, radius: 8, opacity: 0.7)
-                }
-                NavRow(title: "أسئلتي", symbol: "questionmark.circle", isActive: false) {
-                } trailing: {
-                    Text(verbatim: "3")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.muted)
-                }
+            Text("الفهرس")
+                .font(Theme.text(12, .bold))
+                .foregroundStyle(Theme.mark)
+                .padding(.top, 22)
+                .padding(.bottom, 6)
+
+            IndexRow(title: "المكتبة", page: 1, isActive: router.route == .library) {
+                router.route = .library
             }
+            IndexRow(title: "المراجعة", page: 5, isActive: router.route == .review, count: reviewCount) {
+                router.route = .review
+            }
+            IndexRow(title: "أسئلتي", page: 9, isActive: false, count: 3, quiet: true) {}
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("موادي")
-                    .font(.system(size: 12.5, weight: .semibold))
-                    .foregroundStyle(Theme.muted)
-                    .padding(.horizontal, 14)
-                HStack(spacing: 10) {
-                    Text(verbatim: Samples.course.code)
+            Text("موادي")
+                .font(Theme.text(12, .bold))
+                .foregroundStyle(Theme.mark)
+                .padding(.top, 26)
+                .padding(.bottom, 8)
+
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(verbatim: Samples.course.code)
+                    .font(Theme.serif(15, .bold))
+                    .foregroundStyle(Theme.ink)
+                    .environment(\.layoutDirection, .leftToRight)
+                Text(verbatim: Samples.course.name)
+                    .font(Theme.text(14.5, .semibold))
+                    .foregroundStyle(Theme.ink)
+            }
+            .frame(minHeight: 36)
+            Hairline(color: Theme.rule)
+
+            Button { router.route = .importing } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Theme.onBright)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Theme.brand, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    Text(verbatim: Samples.course.name)
-                        .font(.system(size: 14.5, weight: .semibold))
-                        .foregroundStyle(Theme.ink)
+                    Text("أضف مادة")
                 }
-                .padding(.horizontal, 14)
+                .font(Theme.text(14.5, .medium))
+                .foregroundStyle(Theme.inkSoft)
                 .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: Radius.control, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
-                Button { router.route = .importing } label: {
-                    Label("أضف مادة", systemImage: "plus")
-                        .font(.system(size: 14.5))
-                        .foregroundStyle(Theme.muted)
-                        .padding(.horizontal, 14)
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
 
             Spacer(minLength: 0)
 
+            Hairline(color: Theme.rule)
             Text("ملفاتك تبقى على جهازك. الشرح يتجهّز مرة وحدة لكل محاضرة.")
-                .font(.system(size: 12.5))
-                .lineSpacing(Theme.leading(for: 12.5) / 2)
-                .foregroundStyle(Theme.muted)
-                .padding(.horizontal, 14)
+                .font(Theme.text(12, .regular))
+                .lineSpacing(Theme.leading(for: 12) / 2)
+                .foregroundStyle(Theme.mark)
+                .padding(.top, 10)
         }
-        .padding(.horizontal, 20)
+        .padding(.leading, 24)
+        .padding(.trailing, 34)
         .padding(.vertical, 28)
-        .frame(width: 248, alignment: .topLeading)
+        .frame(width: 260, alignment: .topLeading)
         .frame(maxHeight: .infinity, alignment: .top)
-        .background(Theme.sidebar.opacity(0.72))
-        .overlay(alignment: .trailing) {
-            Rectangle()
-                .fill(LinearGradient(colors: [Theme.mint.opacity(0.25), Theme.line, .clear], startPoint: .top, endPoint: .bottom))
-                .frame(width: 1)
+        .background {
+            ZStack {
+                Theme.paperShade
+                Grain(density: 0.7)
+            }
+            .shadow(color: Theme.ink.opacity(0.14), radius: 6, x: 0, y: 0)
         }
+        .overlay(alignment: .trailing) {
+            Coil().frame(width: 26)
+        }
+        .zIndex(1)
     }
 }
 
-private struct NavRow<Trailing: View>: View {
+private struct IndexRow: View {
     var title: LocalizedStringKey
-    var symbol: String
+    var page: Int
     var isActive: Bool
+    var count: Int?
+    var quiet = false
     var action: () -> Void
-    let trailing: Trailing
-
-    init(title: LocalizedStringKey, symbol: String, isActive: Bool, action: @escaping () -> Void, @ViewBuilder trailing: () -> Trailing = { EmptyView() }) {
-        self.title = title
-        self.symbol = symbol
-        self.isActive = isActive
-        self.action = action
-        self.trailing = trailing()
-    }
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .font(.system(size: 17, weight: .medium))
-                    .frame(width: 22)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(title)
-                    .font(.system(size: 15, weight: isActive ? .semibold : .medium))
-                Spacer(minLength: 0)
-                trailing
-            }
-            .foregroundStyle(isActive ? Theme.mint : Theme.secondary)
-            .padding(.horizontal, 14)
-            .frame(height: 46)
-            .background {
-                if isActive {
-                    let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                    shape
-                        .fill(LinearGradient(colors: [Theme.teal.opacity(0.24), Theme.teal.opacity(0.06)], startPoint: .leading, endPoint: .trailing))
-                        .overlay(shape.strokeBorder(Theme.mint.opacity(0.28), lineWidth: 1))
-                        .overlay(alignment: .leading) {
-                            Capsule().fill(Theme.mint).frame(width: 3, height: 22).glow(Theme.mint, radius: 6, opacity: 0.9)
-                        }
+                    .font(Theme.text(16, isActive ? .heavy : .medium))
+                    .foregroundStyle(isActive ? Theme.ink : Theme.inkSoft)
+                    .highlighted(isActive, seed: page)
+                if let count {
+                    Text(verbatim: String(count))
+                        .font(Theme.serif(13, .bold))
+                        .foregroundStyle(quiet ? Theme.mark : Theme.red)
+                        .frame(width: 22, height: 22)
+                        .overlay { if !quiet { PenRing(lineWidth: 1.6).padding(-2) } }
                 }
+                Leader()
+                Text(verbatim: "ص \(page)")
+                    .font(Theme.serif(13, .regular))
+                    .foregroundStyle(Theme.mark)
             }
+            .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isActive ? .isSelected : [])
+    }
+}
+
+/// The wire binding: punched holes down the edge, a coil loop through each.
+struct Coil: View {
+    var body: some View {
+        Canvas { context, size in
+            let pitch: CGFloat = 22
+            var y: CGFloat = 18
+            while y < size.height - 10 {
+                // Canvas x runs from the sheet's outer edge (0) into the page.
+                let hole = CGRect(x: size.width * 0.5, y: y - 4, width: 8, height: 8)
+                context.fill(Path(ellipseIn: hole), with: .color(Theme.hole))
+                context.stroke(Path(ellipseIn: hole), with: .color(Theme.ink.opacity(0.25)), lineWidth: 0.5)
+                var loop = Path()
+                loop.move(to: CGPoint(x: hole.midX, y: hole.midY))
+                loop.addCurve(
+                    to: CGPoint(x: hole.midX + 2, y: hole.midY + pitch * 0.42),
+                    control1: CGPoint(x: -6, y: hole.midY - 4),
+                    control2: CGPoint(x: -6, y: hole.midY + pitch * 0.5)
+                )
+                context.stroke(loop, with: .color(Color(hex: 0x3A3733)), style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
+                context.stroke(loop, with: .color(.white.opacity(0.35)), style: StrokeStyle(lineWidth: 0.6, lineCap: .round))
+                y += pitch
+            }
+        }
+        .environment(\.layoutDirection, .leftToRight)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }

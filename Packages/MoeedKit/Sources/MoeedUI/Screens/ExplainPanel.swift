@@ -1,7 +1,8 @@
 import SwiftUI
 import MoeedCore
 
-/// "Explain this": the student frames a region of the slide and asks about it.
+/// "Explain this": the student frames a region of the slide in blue pen and asks about it.
+/// The region comes back as a taped clipping, and the answer as the tutor's numbered margin notes.
 struct ExplainPanel: View {
     var page: SlidePage
     var selection: SlideRect
@@ -19,20 +20,25 @@ struct ExplainPanel: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
                 Text("اشرح هذا الجزء")
-                    .font(.system(size: 21, weight: .heavy))
+                    .font(Theme.text(21, .heavy))
                     .foregroundStyle(Theme.ink)
                 Spacer()
-                StatusPill(text: "منطقة محدّدة", foreground: Theme.focus, background: Theme.focusTint)
+                Text("منطقة محدّدة")
+                    .font(Theme.text(12.5, .semibold))
+                    .foregroundStyle(Theme.blue)
             }
+            Hairline()
+                .padding(.top, 8)
 
-            RegionCrop(page: page, rect: selection, width: 382)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        .strokeBorder(Theme.focus, style: StrokeStyle(lineWidth: 2, dash: [7, 5]))
-                )
+            RegionCrop(page: page, rect: selection, width: 300)
+                .slideFrame()
+                .taped(.top, angle: 4)
+                .rotationEffect(.degrees(-1.5))
+                .frame(maxWidth: .infinity)
+                .padding(.top, 22)
 
             FlowLayout(spacing: 8) {
                 ForEach(prompts.indices, id: \.self) { index in
@@ -40,58 +46,58 @@ struct ExplainPanel: View {
                         .buttonStyle(.chip(selected: chosen == index))
                 }
             }
+            .padding(.top, 18)
 
             answer
+                .padding(.top, 16)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 12)
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 10) {
                     Group {
                         if isSnapshot {
                             Text("اكتب سؤالك عن هالجزء…")
-                                .foregroundStyle(Theme.muted)
+                                .foregroundStyle(Theme.mark)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             TextField("اكتب سؤالك عن هالجزء…", text: $question)
+                                .foregroundStyle(Theme.blue)
                         }
                     }
-                    .font(.system(size: 15))
+                    .font(Theme.text(15.5))
                     Button {} label: {
                         Image(systemName: "arrow.up")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(Theme.paper)
                             .frame(width: 36, height: 36)
-                            .background(Theme.sunset, in: Circle())
-                            .glow(Theme.pen, radius: 8)
+                            .background(Theme.ink, in: Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .frame(minWidth: 44, minHeight: 44)
                     .accessibilityLabel(Text("أرسل"))
                 }
-                .padding(.leading, 16)
-                .padding(.trailing, 6)
-                .frame(height: 50)
-                .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        .strokeBorder(Theme.edge, lineWidth: 1)
-                )
+                .overlay(alignment: .bottom) { Hairline(color: Theme.ink, weight: 1).offset(y: -4) }
                 Text("ينحفظ السؤال في «أسئلتي» مع مكانه على السلايد.")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Theme.muted)
+                    .font(Theme.text(12))
+                    .foregroundStyle(Theme.mark)
             }
         }
         .padding(24)
         .frame(maxHeight: .infinity, alignment: .top)
-        .card()
+        .paperSheet(Theme.card)
     }
 
     private var answer: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(Self.sampleAnswer, id: \.self) { line in
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(Array(Self.sampleAnswer.enumerated()), id: \.offset) { index, line in
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Text(verbatim: String(index + 1))
+                        .font(Theme.serif(14, .bold))
+                        .foregroundStyle(Theme.red)
+                        .frame(width: 20)
                     Text(RichText.attributed(line))
-                        .font(.system(size: 16))
+                        .font(Theme.text(16))
                         .foregroundStyle(Theme.ink)
                         .lineSpacing(Theme.leading(for: 16) / 2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -101,17 +107,17 @@ struct ExplainPanel: View {
                 Button(action: onDraw) {
                     Label("ارسمها على السلايد", systemImage: "pencil.tip")
                 }
-                .buttonStyle(.pen(height: 44))
+                .buttonStyle(.redPen(height: 44))
                 Button {} label: { Text("ما زلت مو فاهم") }
                     .buttonStyle(.outline(height: 44))
             }
+            .padding(.top, 4)
         }
-        .padding(16)
+        .padding(.leading, 12)
+        .overlay(alignment: .leading) {
+            Rectangle().fill(Theme.red.opacity(0.55)).frame(width: 1)
+        }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(colors: [Theme.focus.opacity(0.12), .white.opacity(0.03)], startPoint: .top, endPoint: .bottom),
-            in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-        )
     }
 
     private static let sampleAnswer = [
@@ -135,7 +141,6 @@ struct RegionCrop: View {
             .offset(x: -CGFloat(rect.x - pad) * scale, y: -CGFloat(rect.y - pad) * scale)
             .frame(width: width, height: CGFloat(rect.h + pad * 2) * scale, alignment: .topLeading)
             .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             .environment(\.layoutDirection, .leftToRight)
             .accessibilityHidden(true)
     }

@@ -43,9 +43,9 @@ public struct RootView: View {
         }
         .environment(router)
         .environment(\.locale, Locale(identifier: "ar@numbers=latn"))
-        .environment(\.colorScheme, .dark)
-        .preferredColorScheme(.dark)
-        .tint(Theme.mint)
+        .environment(\.colorScheme, .light)
+        .preferredColorScheme(.light)
+        .tint(Theme.red)
     }
 }
 
@@ -77,9 +77,6 @@ public enum Gallery {
             entry("08-import", RootView(route: .importing)),
             entry("09-player-portrait", RootView(route: .player, player: PlayerModel.settled(page, step: 4)), size: portrait),
             entry("10-summary-spotlight", RootView(route: .player, player: PlayerModel.settled(page, step: 8))),
-            GalleryEntry(name: "11-sculpture", size: CGSize(width: 900, height: 740), view: AnyView(
-                LogoSculpture().padding(40).background(Aurora())
-            )),
         ]
     }
 }

@@ -3,81 +3,84 @@ import SwiftUI
 import UIKit
 #endif
 
-struct FilledButtonStyle: ButtonStyle {
-    var fill: AnyShapeStyle
-    var foreground: Color = .white
-    var glow: Color?
+/// A solid printed key: toner black (or the tutor's red), paper-coloured letters, square corners.
+/// Pressing it sinks it into the page instead of dimming it.
+struct InkButtonStyle: ButtonStyle {
+    var fill: Color = Theme.ink
+    var foreground: Color = Theme.paper
     var height: CGFloat = 48
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
         configuration.label
-            .font(.system(size: 16, weight: .bold))
+            .font(Theme.text(16, .bold))
             .foregroundStyle(foreground)
             .padding(.horizontal, 22)
             .frame(minHeight: height)
-            .background {
-                shape.fill(fill)
-                    // A sheen on the top half and a lit rim make it read as a raised, glossy key.
-                    .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.28), .white.opacity(0)], startPoint: .top, endPoint: .center)))
-                    .overlay(shape.strokeBorder(.white.opacity(0.22), lineWidth: 1))
-                    .shadow(color: (glow ?? .clear).opacity(isEnabled ? 0.5 : 0), radius: 18, y: 8)
-            }
-            .contentShape(shape)
-            .opacity(isEnabled ? (configuration.isPressed ? 0.88 : 1) : 0.4)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.snappy(duration: 0.15), value: configuration.isPressed)
+            .background(fill, in: Rectangle())
+            .background(
+                Rectangle().fill(Theme.ink.opacity(0.85)).offset(x: 0, y: configuration.isPressed ? 0 : 3)
+            )
+            .offset(y: configuration.isPressed ? 3 : 0)
+            .opacity(isEnabled ? 1 : 0.35)
+            .contentShape(Rectangle())
+            .animation(.snappy(duration: 0.12), value: configuration.isPressed)
     }
 }
 
+/// A ruled box: a hairline of ink around the words, nothing behind them.
 struct OutlineButtonStyle: ButtonStyle {
     var height: CGFloat = 48
 
     func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
         configuration.label
-            .font(.system(size: 15, weight: .semibold))
+            .font(Theme.text(15, .semibold))
             .foregroundStyle(Theme.ink)
             .padding(.horizontal, 16)
             .frame(minHeight: height)
-            .background(.white.opacity(configuration.isPressed ? 0.1 : 0.055), in: shape)
-            .overlay(shape.strokeBorder(Theme.edge, lineWidth: 1))
-            .contentShape(shape)
+            .background(Theme.ink.opacity(configuration.isPressed ? 0.08 : 0), in: Rectangle())
+            .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1))
+            .contentShape(Rectangle())
     }
 }
 
+/// A tab in an index: the selected one is printed solid.
 struct ChipButtonStyle: ButtonStyle {
     var isSelected: Bool
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(isSelected ? Theme.mint : Theme.secondary)
-            .padding(.horizontal, 16)
+            .font(Theme.text(14, isSelected ? .bold : .medium))
+            .foregroundStyle(isSelected ? Theme.paper : Theme.inkSoft)
+            .padding(.horizontal, 14)
+            .frame(minHeight: 40)
+            .background(isSelected ? Theme.ink : Color.clear, in: Rectangle())
+            .overlay(Rectangle().strokeBorder(isSelected ? Theme.ink : Theme.rule, lineWidth: 1))
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.75 : 1)
             .frame(minHeight: 44)
-            .background(isSelected ? Theme.teal.opacity(0.18) : .white.opacity(0.05), in: Capsule())
-            .overlay(Capsule().strokeBorder(isSelected ? Theme.mint.opacity(0.7) : Theme.line, lineWidth: 1))
-            .shadow(color: Theme.teal.opacity(isSelected ? 0.35 : 0), radius: 10)
-            .contentShape(Capsule())
-            .opacity(configuration.isPressed ? 0.8 : 1)
     }
 }
 
-extension ButtonStyle where Self == FilledButtonStyle {
-    static func filled(_ background: Color = Theme.pen, foreground: Color = .white, height: CGFloat = 48) -> FilledButtonStyle {
-        FilledButtonStyle(fill: AnyShapeStyle(background), foreground: foreground, glow: background, height: height)
+/// Words with a pen underline, for quiet navigation like «← المكتبة».
+struct UnderlineButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(Theme.text(15, .semibold))
+            .foregroundStyle(Theme.ink)
+            .padding(.vertical, 4)
+            .overlay(alignment: .bottom) { Hairline(weight: 1) }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.6 : 1)
     }
+}
 
-    /// The main action: lit with the logo's mint-to-ocean light.
-    static func primary(height: CGFloat = 48) -> FilledButtonStyle {
-        FilledButtonStyle(fill: AnyShapeStyle(Theme.brand), foreground: Theme.onBright, glow: Theme.teal, height: height)
-    }
-
-    /// The tutor's actions: the pen's pink running into coral.
-    static func pen(height: CGFloat = 48) -> FilledButtonStyle {
-        FilledButtonStyle(fill: AnyShapeStyle(Theme.sunset), foreground: .white, glow: Theme.pen, height: height)
-    }
+extension ButtonStyle where Self == InkButtonStyle {
+    static func ink(height: CGFloat = 48) -> InkButtonStyle { InkButtonStyle(height: height) }
+    /// The tutor's own actions are in red pen.
+    static func redPen(height: CGFloat = 48) -> InkButtonStyle { InkButtonStyle(fill: Theme.red, height: height) }
+    static func stamped(height: CGFloat = 48) -> InkButtonStyle { InkButtonStyle(fill: Theme.stamp, height: height) }
 }
 
 extension ButtonStyle where Self == OutlineButtonStyle {
@@ -88,54 +91,132 @@ extension ButtonStyle where Self == ChipButtonStyle {
     static func chip(selected: Bool) -> ChipButtonStyle { ChipButtonStyle(isSelected: selected) }
 }
 
-/// A thin, glowing progress bar that fills from the reading start (right in Arabic).
+extension ButtonStyle where Self == UnderlineButtonStyle {
+    static var underlined: UnderlineButtonStyle { UnderlineButtonStyle() }
+}
+
+/// Progress as a highlighter run along a dotted rule, filling from the reading start (right in Arabic).
 struct ProgressTrack: View {
     var value: Double
-    var fill: AnyShapeStyle = AnyShapeStyle(Theme.brandFlat)
-    var glow: Color = Theme.teal
-    var height: CGFloat = 8
+    var tint: Color = Theme.highlighter
+    var height: CGFloat = 10
 
-    init(value: Double, height: CGFloat = 8) {
+    init(value: Double, height: CGFloat = 10) {
         self.value = value
         self.height = height
     }
 
-    init(value: Double, tint: Color, height: CGFloat = 8) {
+    init(value: Double, tint: Color, height: CGFloat = 10) {
         self.value = value
-        self.fill = AnyShapeStyle(tint)
-        self.glow = tint
+        self.tint = tint
         self.height = height
     }
 
     var body: some View {
         GeometryReader { geo in
-            HStack(spacing: 0) {
-                Capsule()
-                    .fill(fill)
+            ZStack(alignment: .leading) {
+                Leader()
+                    .frame(maxHeight: .infinity)
+                HighlighterSwipe(seed: 2)
+                    .fill(tint.opacity(0.75))
+                    .blendMode(.multiply)
                     .frame(width: geo.size.width * CGFloat(min(max(value, 0), 1)))
-                    .shadow(color: glow.opacity(0.6), radius: 6)
-                Spacer(minLength: 0)
             }
         }
         .frame(height: height)
-        .background(.white.opacity(0.08), in: Capsule())
         .accessibilityElement()
         .accessibilityValue(Text("\(Int(value * 100))٪"))
     }
 }
 
+/// A small rubber-stamp label: ink outline, slightly worn.
 struct StatusPill: View {
     var text: String
     var foreground: Color
-    var background: Color
+    var background: Color = .clear
 
     var body: some View {
         Text(text)
-            .font(.system(size: 12, weight: .semibold))
+            .font(Theme.text(12, .bold))
             .foregroundStyle(foreground)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 3)
-            .background(background, in: Capsule())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .background(background, in: Rectangle())
+            .overlay(Rectangle().strokeBorder(foreground.opacity(0.8), lineWidth: 1))
+    }
+}
+
+/// A rubber stamp, pressed a little crooked: double frame, heavy letters, uneven ink.
+struct Stamp: View {
+    var text: LocalizedStringKey
+    var color: Color = Theme.stamp
+    var size: CGFloat = 15
+    var angle: Double = -7
+
+    var body: some View {
+        Text(text)
+            .font(Theme.text(size, .heavy))
+            .foregroundStyle(color)
+            .padding(.horizontal, size * 0.7)
+            .padding(.vertical, size * 0.3)
+            .overlay(Rectangle().strokeBorder(color, lineWidth: size * 0.12).padding(size * 0.12))
+            .overlay(Rectangle().strokeBorder(color, lineWidth: size * 0.07))
+            .mask {
+                // Worn ink: the stamp never prints perfectly.
+                ZStack {
+                    Rectangle()
+                    Grain(density: 9).blendMode(.destinationOut)
+                }
+                .compositingGroup()
+            }
+            .opacity(0.88)
+            .rotationEffect(.degrees(angle))
+            .accessibilityElement(children: .combine)
+    }
+}
+
+/// The tutor's pen ring around a number or a word.
+struct PenRing: View {
+    var color: Color = Theme.red
+    var lineWidth: CGFloat = 2
+
+    var body: some View {
+        InkEllipse()
+            .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+            .accessibilityHidden(true)
+    }
+}
+
+/// A hand-drawn tick.
+struct PenTick: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.minX, y: rect.midY + rect.height * 0.05))
+        p.addQuadCurve(to: CGPoint(x: rect.minX + rect.width * 0.36, y: rect.maxY),
+                       control: CGPoint(x: rect.minX + rect.width * 0.2, y: rect.midY + rect.height * 0.3))
+        p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY),
+                       control: CGPoint(x: rect.minX + rect.width * 0.55, y: rect.midY - rect.height * 0.1))
+        return p
+    }
+}
+
+/// A box you tick by hand, as on an exam sheet.
+struct PenCheckbox: View {
+    var isOn: Bool
+    var color: Color = Theme.red
+
+    var body: some View {
+        ZStack {
+            Rectangle().strokeBorder(Theme.ink, lineWidth: 1.2).frame(width: 16, height: 16)
+            if isOn {
+                PenTick()
+                    .stroke(color, style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
+                    .frame(width: 17, height: 14)
+                    .offset(x: 2, y: -3)
+            }
+        }
+        .frame(width: 22, height: 22)
+        .accessibilityHidden(true)
     }
 }
 
@@ -181,7 +262,8 @@ struct FlowLayout: Layout {
     }
 }
 
-/// The app mark. Loads the "Logo" image from the app's asset catalog; a plain tile stands in elsewhere (CLI snapshots).
+/// The app mark. Loads the "Logo" image from the app's asset catalog; elsewhere (CLI snapshots)
+/// the arch is printed in toner, the way the paper inks every mark it carries.
 struct LogoSlot: View {
     var size: CGFloat = 38
 
@@ -198,22 +280,20 @@ struct LogoSlot: View {
             #endif
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: size * 0.23, style: .continuous))
         .accessibilityHidden(true)
     }
 
     private var placeholder: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: size * 0.23, style: .continuous)
-                .fill(LinearGradient(colors: [Theme.navy, Theme.ocean.opacity(0.9)], startPoint: .bottomLeading, endPoint: .topTrailing))
+            Rectangle().fill(Theme.ink)
             ArchShape()
-                .stroke(Theme.mint, style: StrokeStyle(lineWidth: size * 0.07, lineCap: .round))
-                .frame(width: size * 0.56, height: size * 0.66)
-                .offset(y: size * 0.05)
-            Image(systemName: "play.fill")
-                .font(.system(size: size * 0.24, weight: .bold))
-                .foregroundStyle(Theme.mint)
-                .offset(x: size * 0.02, y: size * 0.1)
+                .stroke(Theme.paper, style: StrokeStyle(lineWidth: size * 0.08, lineCap: .square))
+                .frame(width: size * 0.52, height: size * 0.62)
+                .offset(y: size * 0.06)
+            Circle()
+                .fill(Theme.red)
+                .frame(width: size * 0.16, height: size * 0.16)
+                .offset(y: size * 0.14)
         }
     }
 }

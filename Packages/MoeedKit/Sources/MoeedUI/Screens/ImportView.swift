@@ -1,7 +1,8 @@
 import SwiftUI
 import MoeedCore
 
-/// A lecture being prepared. No spinner: each slide gets inked as its explanation is written.
+/// A lecture being prepared, like a packet coming off the copier. No spinner: a checklist ticked
+/// in red pen, and each page gets inked as its explanation is written.
 struct ImportView: View {
     @Environment(AppRouter.self) private var router
     @State private var onlyReady = false
@@ -11,90 +12,92 @@ struct ImportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 16) {
-                Button { router.route = .library } label: {
-                    Label("المكتبة", systemImage: "chevron.backward")
+            VStack(spacing: 0) {
+                HStack(spacing: 20) {
+                    Button { router.route = .library } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.backward")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("المكتبة")
+                        }
+                    }
+                    .buttonStyle(.underlined)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("تجهيز المحاضرة")
+                            .font(Theme.text(20, .heavy))
+                            .foregroundStyle(Theme.ink)
+                        Text(verbatim: "\(job.courseCode) · \(job.fileName)")
+                            .font(Theme.serif(13.5))
+                            .italic()
+                            .foregroundStyle(Theme.inkSoft)
+                    }
+                    Spacer()
                 }
-                .buttonStyle(.outline(height: 44))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("تجهيز المحاضرة")
-                        .font(.system(size: 19, weight: .heavy))
-                        .foregroundStyle(Theme.ink)
-                    Text(verbatim: "\(job.courseCode) · \(job.fileName)")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.muted)
-                }
-                Spacer()
+                .padding(.top, 16)
+                .padding(.bottom, 12)
+                Hairline(color: Theme.ink.opacity(0.35))
             }
-            .padding(.horizontal, 36)
-            .padding(.top, 18)
+            .padding(.horizontal, 28)
 
             HStack(alignment: .top, spacing: 28) {
-                statusPanel
-                    .frame(width: 380)
+                checklist
+                    .frame(width: 370)
                 slides
             }
-            .padding(.horizontal, 36)
-            .padding(.vertical, 24)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 22)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .background(Aurora(intensity: 0.9))
+        .background(Desk())
     }
 
-    // MARK: Status
+    // MARK: Checklist
 
-    private var statusPanel: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // The sculpture builds itself: one lit step for each finished stage.
-            LogoSculpture(litSteps: min(ImportStage.allCases.filter { $0 < job.stage }.count, 3))
-                .frame(height: 170)
-                .frame(maxWidth: .infinity)
-                .padding(.top, -10)
-                .overlay(alignment: .bottom) {
-                    VStack(spacing: 2) {
-                        Text(verbatim: job.fileName)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(Theme.ink)
-                        Text("\(String(job.slideCount)) سلايد · \(job.courseCode)")
-                            .font(.system(size: 13))
-                            .foregroundStyle(Theme.muted)
-                    }
-                    .offset(y: 30)
-                }
-                .padding(.bottom, 30)
+    private var checklist: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(verbatim: job.fileName)
+                .font(Theme.serif(22, .bold))
+                .foregroundStyle(Theme.ink)
+            Text("\(String(job.slideCount)) سلايد · \(job.courseCode)")
+                .font(Theme.text(13))
+                .foregroundStyle(Theme.inkSoft)
+                .padding(.top, 2)
+            DoubleRule()
+                .padding(.top, 12)
 
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(ImportStage.allCases, id: \.self) { stage in
-                    StageRow(stage: stage, job: job, isLast: stage == ImportStage.allCases.last)
+                    StageRow(stage: stage, job: job)
+                    Hairline(color: Theme.rule)
                 }
             }
+            .padding(.top, 6)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 16)
 
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "bolt.fill")
-                    .foregroundStyle(Theme.working)
+            HStack(alignment: .top, spacing: 12) {
+                Rectangle().fill(Theme.red).frame(width: 2)
                 Text("تقدر تبدأ من السلايدات الجاهزة، والباقي يتجهّز وانت تذاكر.")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.secondary)
+                    .font(Theme.text(14.5, .medium))
+                    .foregroundStyle(Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.workingTint, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, 16)
 
             Button { router.route = .player } label: {
                 HStack(spacing: 8) {
                     Text("ابدأ من السلايد 1")
                     Image(systemName: "chevron.forward")
+                        .font(.system(size: 13, weight: .bold))
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.primary())
+            .buttonStyle(.ink())
         }
         .padding(24)
         .frame(maxHeight: .infinity, alignment: .top)
-        .card()
+        .paperSheet()
     }
 
     // MARK: Slides
@@ -105,25 +108,27 @@ struct ImportView: View {
         let rows = stride(from: 0, to: numbers.count, by: columns).map { Array(numbers[$0..<min($0 + columns, numbers.count)]) }
 
         return VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 10) {
-                Text("السلايدات")
-                    .font(.system(size: 17, weight: .heavy))
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text("الصفحات")
+                    .font(Theme.text(18, .heavy))
                     .foregroundStyle(Theme.ink)
                 Text("\(String(job.scripted)) جاهزة من \(String(job.slideCount))")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.muted)
+                    .font(Theme.text(14))
+                    .foregroundStyle(Theme.inkSoft)
                 Spacer()
-                Button { onlyReady = false } label: { Text("الكل") }
-                    .buttonStyle(.chip(selected: !onlyReady))
-                Button { onlyReady = true } label: { Text("الجاهزة") }
-                    .buttonStyle(.chip(selected: onlyReady))
+                HStack(spacing: 0) {
+                    Button { onlyReady = false } label: { Text("الكل") }
+                        .buttonStyle(.chip(selected: !onlyReady))
+                    Button { onlyReady = true } label: { Text("الجاهزة") }
+                        .buttonStyle(.chip(selected: onlyReady))
+                }
             }
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(rows.indices, id: \.self) { row in
-                    HStack(spacing: 8) {
+                    HStack(spacing: 10) {
                         ForEach(rows[row], id: \.self) { number in
-                            SlideThumb(number: number, state: job.state(ofSlide: number))
+                            PageThumb(number: number, state: job.state(ofSlide: number))
                         }
                     }
                 }
@@ -136,66 +141,41 @@ struct ImportView: View {
 private struct StageRow: View {
     var stage: ImportStage
     var job: ImportJob
-    var isLast: Bool
 
     private var isDone: Bool { stage < job.stage }
     private var isCurrent: Bool { stage == job.stage }
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            VStack(spacing: 0) {
-                indicator
-                if !isLast {
-                    Rectangle()
-                        .fill(isDone ? Theme.correct : Theme.line)
-                        .frame(width: 2)
-                        .frame(minHeight: 26, maxHeight: .infinity)
-                }
-            }
-            .frame(width: 24)
-
+            PenCheckbox(isOn: isDone)
+                .padding(.top, 1)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.system(size: 15.5, weight: .semibold))
-                    .foregroundStyle(isDone || isCurrent ? Theme.ink : Theme.muted)
+                    .font(Theme.text(16, isCurrent ? .heavy : .semibold))
+                    .foregroundStyle(isDone || isCurrent ? Theme.ink : Theme.mark)
+                    .highlighted(isCurrent, seed: 3)
                 Text(detail)
-                    .font(.system(size: 13.5))
-                    .foregroundStyle(Theme.muted)
+                    .font(Theme.text(13.5))
+                    .foregroundStyle(Theme.inkSoft)
                 if isCurrent && stage == .scripting {
                     HStack(spacing: 10) {
-                        ProgressTrack(value: Double(job.scripted) / Double(job.slideCount), tint: Theme.working, height: 6)
+                        ProgressTrack(value: Double(job.scripted) / Double(job.slideCount), height: 8)
                         Text("\(String(job.scripted)) من \(String(job.slideCount))")
-                            .font(.system(size: 12.5, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(Theme.workingText)
+                            .font(Theme.serif(13, .bold).monospacedDigit())
+                            .foregroundStyle(Theme.ink)
                     }
                     .padding(.top, 6)
                 }
             }
-            .padding(.bottom, isLast ? 0 : 18)
+            Spacer(minLength: 0)
+            if isDone {
+                Text("تم")
+                    .font(Theme.text(12.5, .bold))
+                    .foregroundStyle(Theme.red)
+            }
         }
+        .padding(.vertical, 13)
         .fixedSize(horizontal: false, vertical: true)
-    }
-
-    @ViewBuilder
-    private var indicator: some View {
-        if isDone {
-            Image(systemName: "checkmark")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(Theme.onBright)
-                .frame(width: 24, height: 24)
-                .background(Theme.correct, in: Circle())
-                .glow(Theme.correct, radius: 6, opacity: 0.6)
-        } else if isCurrent {
-            Circle()
-                .strokeBorder(Theme.working, lineWidth: 2)
-                .overlay(Circle().fill(Theme.working).padding(6))
-                .frame(width: 24, height: 24)
-                .glow(Theme.working, radius: 8, opacity: 0.8)
-        } else {
-            Circle()
-                .strokeBorder(Theme.faint, lineWidth: 2)
-                .frame(width: 24, height: 24)
-        }
     }
 
     private var title: LocalizedStringKey {
@@ -217,12 +197,13 @@ private struct StageRow: View {
     }
 }
 
-/// A miniature slide. Ready slides carry the tutor's ink; the one being written is half-drawn.
-private struct SlideThumb: View {
+/// A page of the packet. Ready pages are printed and carry the tutor's ink; the one being written
+/// is half-inked under the highlighter; the rest are blank stock waiting in the tray.
+private struct PageThumb: View {
     var number: Int
     var state: SlideJobState
 
-    private static let size = CGSize(width: 78, height: 58)
+    private static let size = CGSize(width: 76, height: 57)
     private static let marks: [InkMark] = [
         .circle(center: SlidePoint(520, 380), rx: 150, ry: 110),
         .underline(from: SlidePoint(80, 250), to: SlidePoint(470, 250)),
@@ -236,33 +217,40 @@ private struct SlideThumb: View {
         let lineB: CGFloat = [30, 46, 38, 52][(number + 1) % 4]
         let waiting = state == .waiting
         ZStack(alignment: .topLeading) {
-            // Waiting slides are still glass; they turn to paper once their explanation is written.
-            waiting ? Color.white.opacity(0.04) : Color.white
-            VStack(alignment: .leading, spacing: 5) {
-                Capsule().fill(waiting ? Color.white.opacity(0.16) : Theme.slideTitle.opacity(0.55)).frame(width: lineA, height: 4)
-                Capsule().fill(waiting ? Color.white.opacity(0.08) : Theme.slideRule).frame(width: lineB, height: 3)
-                Capsule().fill(waiting ? Color.white.opacity(0.08) : Theme.slideRule).frame(width: lineA - 8, height: 3)
-            }
-            .padding(8)
-            if state != .waiting {
+            Rectangle().fill(waiting ? Theme.paper.opacity(0.55) : .white)
+            if !waiting {
+                VStack(alignment: .leading, spacing: 5) {
+                    Rectangle().fill(Theme.slideTitle.opacity(0.6)).frame(width: lineA, height: 4)
+                    Rectangle().fill(Theme.slideRule).frame(width: lineB, height: 3)
+                    Rectangle().fill(Theme.slideRule).frame(width: lineA - 8, height: 3)
+                }
+                .padding(8)
                 InkPath(mark: Self.marks[number % Self.marks.count], scale: scale)
                     .trim(from: 0, to: state == .ready ? 1 : 0.55)
-                    .stroke(Theme.pen, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                    .stroke(Theme.red, style: StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round))
             }
             Text(verbatim: String(number))
-                .font(.system(size: 9.5, weight: .semibold).monospacedDigit())
-                .foregroundStyle(Theme.muted)
+                .font(Theme.serif(9.5, .semibold).monospacedDigit())
+                .foregroundStyle(Theme.mark)
                 .padding(4)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         }
         .frame(width: Self.size.width, height: Self.size.height)
-        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .strokeBorder(state == .writing ? Theme.working : .white.opacity(waiting ? 0.1 : 0.4), lineWidth: state == .writing ? 2 : 1)
-        )
-        .shadow(color: state == .writing ? Theme.working.opacity(0.6) : state == .ready ? Theme.teal.opacity(0.25) : .clear, radius: 10)
-
+        .overlay {
+            if waiting {
+                Rectangle().strokeBorder(Theme.mark.opacity(0.7), style: StrokeStyle(lineWidth: 0.75, dash: [3, 3]))
+            } else {
+                Rectangle().strokeBorder(Theme.ink.opacity(0.15), lineWidth: 0.5)
+            }
+        }
+        .background {
+            if state == .writing {
+                HighlighterSwipe(seed: number)
+                    .fill(Theme.highlighter.opacity(0.85))
+                    .padding(-5)
+            }
+        }
+        .shadow(color: waiting ? .clear : Theme.ink.opacity(0.16), radius: 1.5, y: 1)
         .environment(\.layoutDirection, .leftToRight)
         .accessibilityElement()
         .accessibilityLabel(Text("سلايد \(String(number))"))

@@ -1,6 +1,8 @@
 import SwiftUI
 import MoeedCore
 
+/// The packet's front page: a masthead for the course, the lecture you were in as the lead story,
+/// the lectures as a table of contents, and a sticky note for what needs another look.
 struct LibraryView: View {
     @Environment(AppRouter.self) private var router
     private let course = Samples.course
@@ -11,268 +13,185 @@ struct LibraryView: View {
     var body: some View {
         HStack(spacing: 0) {
             Sidebar()
-            VStack(alignment: .leading, spacing: 20) {
-                hero
-                continueCard
-                lectures
-                reviewBanner
+            VStack(alignment: .leading, spacing: 0) {
+                masthead
+                lead
+                    .padding(.top, 22)
+                contents
+                    .padding(.top, 22)
             }
-            .padding(.horizontal, 36)
-            .padding(.top, 30)
-            .padding(.bottom, 24)
+            .padding(.horizontal, 34)
+            .padding(.top, 24)
+            .padding(.bottom, 22)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .paperSheet()
         }
-        .background(Aurora())
+        .padding(16)
+        .background(Desk())
     }
 
-    // MARK: Hero
+    // MARK: Masthead
 
-    private var hero: some View {
-        HStack(alignment: .center, spacing: 0) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Text(verbatim: course.code)
-                        .font(.system(size: 13, weight: .heavy))
-                        .tracking(2)
-                        .foregroundStyle(Theme.mint)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 5)
-                        .background(Theme.teal.opacity(0.14), in: Capsule())
-                        .overlay(Capsule().strokeBorder(Theme.mint.opacity(0.35), lineWidth: 1))
-                    Spacer()
-                    Button { router.route = .importing } label: {
-                        Label("استيراد محاضرة", systemImage: "square.and.arrow.down")
-                    }
-                    .buttonStyle(.outline(height: 40))
-                }
-                Text(verbatim: course.name)
-                    .font(.system(size: 44, weight: .black))
-                    .foregroundStyle(LinearGradient(colors: [.white, Theme.mint], startPoint: .top, endPoint: .bottom))
-                    .shadow(color: Theme.teal.opacity(0.5), radius: 18)
-                Text("محاضرة جاهزة تنتظرك، و\(String(Samples.reviewItems.count + 2)) توقّعات تستاهل نظرة ثانية.")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Theme.secondary)
-                HStack(spacing: 10) {
-                    Stat(value: RichText.ltr("\(Int(resume.lecture.progress * 100))%"), label: "من المحاضرة", tint: Theme.mint)
-                    Stat(value: String(course.lectures.count), label: "محاضرات", tint: Theme.ocean)
-                    Stat(value: String(Samples.reviewItems.count + 2), label: "للمراجعة", tint: Theme.pen)
-                }
-                .padding(.top, 4)
-            }
-            .padding(.leading, 32)
-            .padding(.vertical, 28)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            LogoSculpture()
-                .frame(width: 400, height: 350)
-                .padding(.vertical, -30)
-                .padding(.trailing, 4)
-        }
-        .frame(height: 290)
-        .background {
+    private var masthead: some View {
+        VStack(spacing: 0) {
             ZStack {
-                RoundedRectangle(cornerRadius: Radius.panel, style: .continuous)
-                    .fill(Theme.surface.opacity(0.75))
-                RoundedRectangle(cornerRadius: Radius.panel, style: .continuous)
-                    .fill(EllipticalGradient(colors: [Theme.teal.opacity(0.35), .clear],
-                                             center: UnitPoint(x: 0.15, y: 0.6), startRadiusFraction: 0, endRadiusFraction: 0.6))
-                RoundedRectangle(cornerRadius: Radius.panel, style: .continuous)
-                    .strokeBorder(Theme.edge, lineWidth: 1)
-            }
-            .shadow(color: .black.opacity(0.4), radius: 30, y: 18)
-        }
-    }
-
-    // MARK: Continue
-
-    private var continueCard: some View {
-        Button { router.route = .player } label: {
-            HStack(alignment: .center, spacing: 26) {
-                SlideStage(page: Samples.sinePage, marks: [.circle(center: SlidePoint(430, 510), rx: 26, ry: 26)])
-                    .frame(width: 216, height: 162)
-                    .slideFrame()
-                    .rotation3DEffect(.degrees(-16), axis: (x: 0, y: 1, z: 0), perspective: 0.55)
-                    .overlay(alignment: .bottomLeading) {
-                        Text("سلايد \(String(resume.page))")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 3)
-                            .background(Theme.pen, in: Capsule())
-                            .glow(Theme.pen, radius: 8)
-                            .offset(x: -6, y: 8)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(verbatim: course.code)
+                            .font(Theme.serif(15, .bold))
+                        Text("الأسبوع 7 · الفصل الأول")
+                            .font(Theme.text(12))
+                            .foregroundStyle(Theme.inkSoft)
                     }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("كمّل من حيث وقفت")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(Theme.pen)
-                    Text(verbatim: "Lecture \(resume.lecture.number) · \(resume.lecture.title)")
-                        .font(.system(size: 24, weight: .heavy))
-                        .foregroundStyle(Theme.ink)
-                    Text("السلايد \(String(resume.page)) من \(String(resume.lecture.slideCount)) · الخطوة \(String(resume.step)) من \(String(resume.stepCount)): \(resume.stepTitle)")
-                        .font(.system(size: 14.5))
-                        .foregroundStyle(Theme.secondary)
-                        .lineLimit(1)
-                    HStack(spacing: 12) {
-                        ProgressTrack(value: resume.lecture.progress)
-                        Text(verbatim: "\(Int(resume.lecture.progress * 100))%")
-                            .font(.system(size: 13, weight: .bold).monospacedDigit())
-                            .foregroundStyle(Theme.mint)
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text("الثلاثاء")
+                            .font(Theme.text(12.5, .semibold))
+                        Text("13 أكتوبر 2026")
+                            .font(Theme.text(12))
+                            .foregroundStyle(Theme.inkSoft)
                     }
-                    .padding(.top, 4)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                VStack(spacing: 10) {
-                    HStack(spacing: 8) {
-                        Text("كمّل الشرح")
-                        Image(systemName: "play.fill")
-                    }
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(Theme.onBright)
-                    .padding(.horizontal, 24)
-                    .frame(height: 52)
-                    .background {
-                        let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        shape.fill(Theme.brand)
-                            .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.3), .clear], startPoint: .top, endPoint: .center)))
-                            .glow(Theme.teal, radius: 18, opacity: 0.6)
-                    }
-                    Text("\(String(resume.askCount)) أسئلة توقّع")
-                        .font(.system(size: 12.5))
-                        .foregroundStyle(Theme.muted)
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .card(radius: Radius.card)
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: Lectures
-
-    private var lectures: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("المحاضرات")
-                .font(.system(size: 17, weight: .heavy))
                 .foregroundStyle(Theme.ink)
-            HStack(alignment: .top, spacing: 14) {
+                Text(verbatim: course.name)
+                    .font(Theme.text(46, .black))
+                    .foregroundStyle(Theme.ink)
+            }
+            Hairline()
+                .padding(.top, 10)
+            HStack(spacing: 10) {
+                Text("\(String(course.lectures.count)) محاضرات")
+                Text(verbatim: "•")
+                Text("\(String(Samples.reviewItems.count + 2)) للمراجعة")
+                Text(verbatim: "•")
+                Text("3 أسئلة مفتوحة")
+            }
+            .font(Theme.text(12.5, .medium))
+            .foregroundStyle(Theme.inkSoft)
+            .padding(.vertical, 6)
+            DoubleRule()
+        }
+    }
+
+    // MARK: Lead story
+
+    private var lead: some View {
+        HStack(alignment: .top, spacing: 26) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("كمّل من حيث وقفت")
+                    .font(Theme.text(13.5, .bold))
+                    .foregroundStyle(Theme.red)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(verbatim: "Lecture \(resume.lecture.number)")
+                        .font(Theme.serif(17, .regular))
+                        .italic()
+                        .foregroundStyle(Theme.inkSoft)
+                    Text(verbatim: resume.lecture.title)
+                        .font(Theme.serif(34, .bold))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+
+                Text("السلايد \(String(resume.page)) من \(String(resume.lecture.slideCount)) · الخطوة \(String(resume.step)) من \(String(resume.stepCount)): \(resume.stepTitle)")
+                    .font(Theme.text(15))
+                    .foregroundStyle(Theme.inkSoft)
+                    .lineSpacing(Theme.leading(for: 15) / 2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 12) {
+                    ProgressTrack(value: resume.lecture.progress)
+                    Text(verbatim: "\(Int(resume.lecture.progress * 100))%")
+                        .font(Theme.serif(15, .bold).monospacedDigit())
+                        .foregroundStyle(Theme.ink)
+                }
+                .padding(.top, 2)
+
+                HStack(spacing: 16) {
+                    Button { router.route = .player } label: {
+                        HStack(spacing: 8) {
+                            Text("كمّل الشرح")
+                            Image(systemName: "chevron.forward")
+                                .font(.system(size: 13, weight: .bold))
+                        }
+                    }
+                    .buttonStyle(.ink(height: 48))
+                    Text("\(String(resume.askCount)) أسئلة توقّع في الطريق")
+                        .font(Theme.text(13))
+                        .foregroundStyle(Theme.mark)
+                }
+                .padding(.top, 6)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            ColumnRule()
+
+            VStack(alignment: .leading, spacing: 8) {
+                SlideStage(page: Samples.sinePage, marks: [.circle(center: SlidePoint(430, 510), rx: 30, ry: 26)])
+                    .frame(width: 290, height: 217.5)
+                    .slideFrame()
+                    .taped(.top, angle: -3)
+                    .rotationEffect(.degrees(1.2))
+                Text("سلايد \(String(resume.page)): وين وقف المعيد آخر مرة")
+                    .font(Theme.text(12))
+                    .italic()
+                    .foregroundStyle(Theme.inkSoft)
+                    .padding(.top, 6)
+            }
+            .frame(width: 290)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    // MARK: Contents
+
+    private var contents: some View {
+        HStack(alignment: .top, spacing: 30) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("المحاضرات")
+                        .font(Theme.text(18, .heavy))
+                    Spacer()
+                    Text("المحتويات")
+                        .font(Theme.text(12, .medium))
+                        .foregroundStyle(Theme.mark)
+                }
+                .foregroundStyle(Theme.ink)
+                .padding(.bottom, 6)
+                Hairline(weight: 1.5)
                 ForEach(course.lectures) { lecture in
-                    LectureTile(lecture: lecture) {
+                    ContentsRow(lecture: lecture) {
                         router.route = lecture.status == .ready ? .player : .importing
                     }
+                    Hairline(color: Theme.rule)
                 }
-                Button { router.route = .importing } label: {
-                    VStack(spacing: 8) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(Theme.mint)
-                            .frame(width: 38, height: 38)
-                            .background(Theme.teal.opacity(0.16), in: Circle())
-                        Text("استورد PDF من الملفات")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(Theme.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                            .strokeBorder(Theme.mint.opacity(0.35), style: StrokeStyle(lineWidth: 1.5, dash: [7, 6]))
-                    )
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                CutHere { router.route = .importing }
             }
-            .fixedSize(horizontal: false, vertical: true)
-        }
-    }
+            .frame(maxWidth: .infinity)
 
-    // MARK: Review
-
-    private var reviewBanner: some View {
-        Button { router.route = .review } label: {
-            HStack(spacing: 16) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .background(Theme.sunset, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                    .glow(Theme.pen, radius: 14, opacity: 0.6)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(String(Samples.reviewItems.count + 2)) توقّعات غلطت فيها")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Theme.ink)
-                    Text("مراجعة سريعة قبل الكويز: 5 دقايق تقريبًا")
-                        .font(.system(size: 13.5))
-                        .foregroundStyle(Theme.secondary)
-                }
-                Spacer()
-                HStack(spacing: 6) {
-                    Text("ابدأ المراجعة")
-                    Image(systemName: "chevron.forward")
-                }
-                .font(.system(size: 14.5, weight: .bold))
-                .foregroundStyle(Theme.pen)
-            }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 14)
-            .background {
-                let shape = RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                shape.fill(Theme.surface.opacity(0.9))
-                    .overlay(shape.fill(LinearGradient(colors: [Theme.pen.opacity(0.22), .clear], startPoint: .leading, endPoint: .center)))
-                    .overlay(shape.strokeBorder(LinearGradient(colors: [Theme.pen.opacity(0.6), .white.opacity(0.06)], startPoint: .leading, endPoint: .trailing), lineWidth: 1))
-            }
+            ReviewNote(count: Samples.reviewItems.count + 2) { router.route = .review }
+                .frame(width: 236)
+                .padding(.top, 14)
         }
-        .buttonStyle(.plain)
     }
 }
 
-/// A number with a coloured dot and a word: "62% من المحاضرة".
-private struct Stat: View {
-    var value: String
-    var label: LocalizedStringKey
-    var tint: Color
-
-    var body: some View {
-        HStack(spacing: 7) {
-            Circle().fill(tint).frame(width: 7, height: 7).glow(tint, radius: 5, opacity: 0.9)
-            Text(verbatim: value)
-                .font(.system(size: 15, weight: .heavy).monospacedDigit())
-                .foregroundStyle(Theme.ink)
-            Text(label)
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.muted)
-        }
-        .padding(.horizontal, 12)
-        .frame(height: 34)
-        .background(.white.opacity(0.05), in: Capsule())
-        .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
-    }
-}
-
-private struct LectureTile: View {
+/// One line of the table of contents: number, title, leader, and where it stands.
+private struct ContentsRow: View {
     var lecture: Lecture
     var action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 14) {
-                ring
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(verbatim: "Lecture \(lecture.number)")
-                            .font(.system(size: 16, weight: .heavy))
-                            .foregroundStyle(Theme.ink)
-                        Spacer()
-                        switch lecture.status {
-                        case .ready:
-                            StatusPill(text: "جاهزة", foreground: Theme.correctText, background: Theme.correctTint)
-                        case let .preparing(progress):
-                            StatusPill(text: "يتجهّز " + RichText.ltr("\(Int(progress * 100))%"), foreground: Theme.workingText, background: Theme.workingTint)
-                        }
-                    }
+            HStack(alignment: .center, spacing: 14) {
+                Text(verbatim: String(format: "%02d", lecture.number))
+                    .font(Theme.serif(30, .bold))
+                    .foregroundStyle(Theme.ink)
+                    .frame(width: 44, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: lecture.title)
+                        .font(Theme.serif(18, .semibold))
+                        .foregroundStyle(Theme.ink)
                     Group {
                         switch lecture.status {
                         case .ready:
@@ -281,48 +200,115 @@ private struct LectureTile: View {
                             Text("تقدر تبدأ من السلايدات الجاهزة")
                         }
                     }
-                    .font(.system(size: 13.5))
-                    .foregroundStyle(Theme.secondary)
-                    .lineLimit(1)
+                    .font(Theme.text(13))
+                    .foregroundStyle(Theme.inkSoft)
                 }
+                .fixedSize()
+                Leader()
+                status
             }
-            .padding(16)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .card(radius: Radius.card)
+            .padding(.vertical, 12)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
-    private var value: Double {
+    @ViewBuilder
+    private var status: some View {
         switch lecture.status {
-        case .ready: return lecture.progress
-        case let .preparing(progress): return progress
+        case .ready:
+            HStack(spacing: 12) {
+                Text(verbatim: "\(Int(lecture.progress * 100))%")
+                    .font(Theme.serif(15, .bold).monospacedDigit())
+                    .foregroundStyle(Theme.ink)
+                Stamp(text: "جاهزة", size: 12, angle: -6)
+            }
+        case let .preparing(progress):
+            VStack(alignment: .trailing, spacing: 5) {
+                Text("يتجهّز " + RichText.ltr("\(Int(progress * 100))%"))
+                    .font(Theme.text(12.5, .bold))
+                    .foregroundStyle(Theme.inkSoft)
+                ProgressTrack(value: progress, height: 7)
+                    .frame(width: 84)
+            }
         }
     }
+}
 
-    private var tint: Color {
-        lecture.status == .ready ? Theme.mint : Theme.working
-    }
+/// «قص هنا»: the dashed line where a new lecture goes in.
+private struct CutHere: View {
+    var action: () -> Void
 
-    /// A glowing progress ring, lit from the top.
-    private var ring: some View {
-        ZStack {
-            Circle().stroke(.white.opacity(0.08), lineWidth: 5)
-            Circle()
-                .trim(from: 0, to: value)
-                .stroke(
-                    AngularGradient(colors: lecture.status == .ready ? [Theme.ocean, Theme.teal, Theme.mint] : [Theme.pen, Theme.working],
-                                    center: .center, startAngle: .degrees(0), endAngle: .degrees(360 * value)),
-                    style: StrokeStyle(lineWidth: 5, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .glow(tint, radius: 6, opacity: 0.7)
-            Text(verbatim: String(lecture.number))
-                .font(.system(size: 17, weight: .black))
-                .foregroundStyle(tint)
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: "scissors")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Theme.inkSoft)
+                Text("أضف محاضرة: استورد PDF من الملفات")
+                    .font(Theme.text(14, .semibold))
+                    .foregroundStyle(Theme.inkSoft)
+                    .fixedSize()
+                Rectangle()
+                    .fill(.clear)
+                    .frame(height: 1)
+                    .overlay(
+                        GeometryReader { geo in
+                            Path { p in
+                                p.move(to: .zero)
+                                p.addLine(to: CGPoint(x: geo.size.width, y: 0))
+                            }
+                            .stroke(Theme.inkSoft, style: StrokeStyle(lineWidth: 1, dash: [6, 5]))
+                        }
+                    )
+            }
+            .frame(minHeight: 52)
+            .contentShape(Rectangle())
         }
-        .frame(width: 52, height: 52)
-        .environment(\.layoutDirection, .leftToRight)
+        .buttonStyle(.plain)
+    }
+}
+
+/// A sticky note left on the page: what you got wrong, and five minutes to fix it.
+struct ReviewNote: View {
+    var count: Int
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("\(String(count)) توقّعات غلطت فيها")
+                    .font(Theme.text(19, .heavy))
+                    .foregroundStyle(Theme.ink)
+                Text("مراجعة سريعة قبل الكويز، 5 دقايق تقريبًا.")
+                    .font(Theme.text(14))
+                    .foregroundStyle(Theme.ink.opacity(0.75))
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 6)
+                HStack(spacing: 6) {
+                    Text("ابدأ المراجعة")
+                    Image(systemName: "chevron.forward")
+                        .font(.system(size: 12, weight: .bold))
+                }
+                .font(Theme.text(15, .bold))
+                .foregroundStyle(Theme.red)
+                .overlay(alignment: .bottom) { Hairline(color: Theme.red, weight: 1.5).offset(y: 4) }
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, minHeight: 170, alignment: .topLeading)
+            .background {
+                ZStack {
+                    Color(hex: 0xF6DF6E)
+                    LinearGradient(colors: [.clear, Theme.ink.opacity(0.06)], startPoint: .top, endPoint: .bottom)
+                    Grain(density: 0.8)
+                }
+                .shadow(color: Theme.ink.opacity(0.2), radius: 1, y: 1)
+                .shadow(color: Theme.ink.opacity(0.14), radius: 10, x: 0, y: 7)
+            }
+            .taped(.top, angle: 3)
+            .rotationEffect(.degrees(-2))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
