@@ -51,7 +51,8 @@ jobs:
           name: Moeed-simulator
           path: Moeed-simulator.zip
 
-      # Interactive preview in the browser. Needs the APPETIZE_API_TOKEN secret;
+      # Interactive preview in the browser. The app is iPad-only, so the link opens an iPad
+      # (Appetize defaults to an iPhone, where the app can't run). Needs the APPETIZE_API_TOKEN secret;
       # after the first upload, save the printed key as the APPETIZE_PUBLIC_KEY variable
       # so later builds replace the same app and the link stays the same.
       - name: Send to Appetize
@@ -66,7 +67,7 @@ jobs:
           echo "Appetize public key: $key"
           {
             echo "### Live preview"
-            echo "https://appetize.io/app/$key"
+            echo "https://appetize.io/embed/$key?device=ipadair4thgeneration&osVersion=17.2&orientation=landscape&autoplay=true"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Swift Playgrounds package
