@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Svg, { G, Polygon } from 'react-native-svg';
-import { C, S, T } from './theme';
+import { C, S, T, ms, me } from './theme';
 import { STAGES, importJob as job, slideState, stageText } from './data';
 import { DoubleRule, Hairline, Highlight, Sheet, swipePoints, useSize } from './paper';
 import { DrawnPath, PenCheckbox } from './pen';
@@ -17,7 +17,7 @@ export function ImportScreen({ wide, go }) {
     <View style={{ paddingHorizontal: wide ? 28 : 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: wide ? 16 : 6, paddingBottom: 12 }}>
         <UnderLink label="المكتبة" onPress={() => go('library')} />
-        <View style={{ marginStart: 20, flexShrink: 1 }}>
+        <View style={{ ...ms(20), flexShrink: 1 }}>
           <T size={20} w="800" lh={28}>
             تجهيز المحاضرة
           </T>
@@ -49,7 +49,7 @@ export function ImportScreen({ wide, go }) {
       </View>
       <View style={{ flexDirection: 'row', marginTop: 22, marginBottom: 16 }}>
         <View style={{ width: 2, backgroundColor: C.red }} />
-        <T size={14.5} w="500" style={{ flex: 1, marginStart: 12 }}>
+        <T size={14.5} w="500" style={{ flex: 1, ...ms(12) }}>
           تقدر تبدأ من السلايدات الجاهزة، والباقي يتجهّز وانت تذاكر.
         </T>
       </View>
@@ -63,7 +63,7 @@ export function ImportScreen({ wide, go }) {
         <T size={18} w="800" lh={26}>
           الصفحات
         </T>
-        <T size={14} color={C.inkSoft} style={{ marginStart: 10 }} lh={26}>
+        <T size={14} color={C.inkSoft} style={{ ...ms(10) }} lh={26}>
           {`${job.scripted} جاهزة من ${job.slideCount}`}
         </T>
         <View style={{ flex: 1 }} />
@@ -110,7 +110,7 @@ function StageRow({ stage }) {
       <View style={{ marginTop: 1 }}>
         <PenCheckbox on={done} />
       </View>
-      <View style={{ flex: 1, marginStart: 14 }}>
+      <View style={{ flex: 1, ...ms(14) }}>
         <Highlight on={current} seed={3}>
           <T size={16} w={current ? '800' : '600'} color={done || current ? C.ink : C.mark} lh={22}>
             {title}
@@ -122,14 +122,14 @@ function StageRow({ stage }) {
         {current && stage === 'scripting' && (
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
             <ProgressTrack value={job.scripted / job.slideCount} height={8} />
-            <S size={13} w="700" style={{ marginStart: 10 }} lh={18}>
+            <S size={13} w="700" style={{ ...ms(10) }} lh={18}>
               {`${job.scripted} من ${job.slideCount}`}
             </S>
           </View>
         )}
       </View>
       {done && (
-        <T size={12.5} w="700" color={C.red} style={{ marginStart: 8 }}>
+        <T size={12.5} w="700" color={C.red} style={{ ...ms(8) }}>
           تم
         </T>
       )}
@@ -148,7 +148,7 @@ function PageGrid({ onlyReady }) {
     <View onLayout={onLayout} style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16 }}>
       {size &&
         numbers.map((n, i) => (
-          <View key={n} style={{ marginEnd: (i + 1) % cols === 0 ? 0 : THUMB.gap, marginBottom: 12 }}>
+          <View key={n} style={{ ...me((i + 1) % cols === 0 ? 0 : THUMB.gap), marginBottom: 12 }}>
             <PageThumb number={n} state={slideState(job, n)} />
           </View>
         ))}

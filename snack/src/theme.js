@@ -74,7 +74,7 @@ export function T({ size = 15, w = '400', color = C.ink, serif, italic, align, l
         style,
       ]}
     >
-      {typeof children === 'string' && !serif ? RLM + children : children}
+      {typeof children === 'string' && (!serif || /[؀-ۿ]/.test(children)) ? RLM + children : children}
     </Text>
   );
 }
@@ -130,3 +130,12 @@ export const inkTotal = (n) => (n === 0 ? 0 : inkDelay(n - 1) + INK.stroke);
 
 export const easeInOut = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
 export const clamp01 = (x) => Math.min(1, Math.max(0, x));
+
+// Leading/trailing spacing in the right-to-left layout. Native resolves marginStart against the
+// root's `direction`; react-native-web resolves it against I18nManager (always LTR there), so on
+// the web the reading start is spelled out as the right-hand side.
+const web = Platform.OS === 'web';
+export const ms = (n) => (web ? { marginRight: n } : { marginStart: n });
+export const me = (n) => (web ? { marginLeft: n } : { marginEnd: n });
+export const ps = (n) => (web ? { paddingRight: n } : { paddingStart: n });
+export const pe = (n) => (web ? { paddingLeft: n } : { paddingEnd: n });

@@ -1,7 +1,7 @@
 // The packet's binding: the index page down the side on iPad, index tabs along the bottom on a phone.
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { C, S, T } from './theme';
+import { C, S, T, ms, ps, pe } from './theme';
 import { course } from './data';
 import { Coil, DoubleRule, Grain, Hairline, Highlight, Leader, useSize } from './paper';
 import { PenRing } from './pen';
@@ -22,13 +22,13 @@ export function LogoSlot({ size = 34 }) {
 function IndexRow({ title, page, active, count, quiet, onPress }) {
   return (
     <Pressable onPress={onPress} accessibilityState={{ selected: active }} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center' }}>
-      <Highlight on={active} seed={page}>
+      <Highlight on={!!active} seed={page} style={{ alignSelf: 'center' }}>
         <T size={16} w={active ? '800' : '500'} color={active ? C.ink : C.inkSoft} lh={22}>
           {title}
         </T>
       </Highlight>
       {count !== undefined && (
-        <View style={{ width: 22, height: 22, alignItems: 'center', justifyContent: 'center', marginStart: 8 }}>
+        <View style={{ width: 22, height: 22, alignItems: 'center', justifyContent: 'center', ...ms(8) }}>
           <S size={13} w="700" color={quiet ? C.mark : C.red} align="center" lh={16}>
             {String(count)}
           </S>
@@ -52,8 +52,8 @@ export function Sidebar({ route, go, reviewCount }) {
       style={{
         width: 260,
         backgroundColor: C.paperShade,
-        paddingStart: 24,
-        paddingEnd: 34,
+        ...ps(24),
+        ...pe(34),
         paddingVertical: 28,
         zIndex: 1,
         shadowColor: C.ink,
@@ -66,7 +66,7 @@ export function Sidebar({ route, go, reviewCount }) {
       <Grain density={0.7} />
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <LogoSlot />
-        <T size={30} w="900" style={{ marginStart: 10 }} lh={40}>
+        <T size={30} w="900" style={{ ...ms(10) }} lh={40}>
           مُعيد
         </T>
       </View>
@@ -89,14 +89,14 @@ export function Sidebar({ route, go, reviewCount }) {
         <S size={15} w="700" lh={20}>
           {course.code}
         </S>
-        <T size={14.5} w="600" style={{ marginStart: 8 }} lh={20}>
+        <T size={14.5} w="600" style={{ ...ms(8) }} lh={20}>
           {course.name}
         </T>
       </View>
       <Hairline color={C.rule} />
       <Pressable onPress={() => go('import')} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center' }}>
         <Icon name="plus" size={13} color={C.inkSoft} />
-        <T size={14.5} w="500" color={C.inkSoft} style={{ marginStart: 8 }} lh={20}>
+        <T size={14.5} w="500" color={C.inkSoft} style={{ ...ms(8) }} lh={20}>
           أضف مادة
         </T>
       </Pressable>
@@ -138,7 +138,7 @@ export function IndexTabs({ route, go, reviewCount }) {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Icon name={t.icon} size={16} color={active ? C.ink : C.mark} />
               {t.count !== undefined && (
-                <S size={11.5} w="700" color={C.red} lh={14} style={{ marginStart: 5 }}>
+                <S size={11.5} w="700" color={C.red} lh={14} style={{ ...ms(5) }}>
                   {String(t.count)}
                 </S>
               )}

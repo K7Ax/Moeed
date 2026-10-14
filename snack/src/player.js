@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Svg from 'react-native-svg';
-import { C, END, Rich, S, START, T, clamp01, easeInOut, inkTotal, ltr, readingMs } from './theme';
+import { C, END, Rich, S, START, T, clamp01, easeInOut, inkTotal, ltr, readingMs, ms, me, ps } from './theme';
 import { explainAnswer, explainSelection } from './data';
 import { Desk, Hairline, Perforation, Sheet, Tape, slideFrame, useSize } from './paper';
 import { DrawnPath, PenCheckbox, PenRing, PenTick, Ringed, ellipsePath } from './pen';
@@ -147,7 +147,7 @@ export function PlayerScreen({ page, wide, onBack }) {
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             {stage(sw, explaining ? { selection: explainSelection, animate: false, marks: [] } : {})}
           </View>
-          <View style={{ width: panelW, marginStart: 26 }}>
+          <View style={{ width: panelW, ...ms(26) }}>
             {explaining ? (
               <ExplainPanel page={page} onDraw={() => setExplaining(false)} wide />
             ) : (
@@ -273,7 +273,7 @@ function LayerToggle({ title, on, onPress }) {
   return (
     <Pressable onPress={onPress} accessibilityState={{ checked: on }} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 44 }}>
       <PenCheckbox on={on} />
-      <T size={14.5} w="600" color={on ? C.ink : C.mark} style={{ marginStart: 5 }} lh={20}>
+      <T size={14.5} w="600" color={on ? C.ink : C.mark} style={{ ...ms(5) }} lh={20}>
         {title}
       </T>
     </Pressable>
@@ -580,13 +580,13 @@ function ExplainPanel({ page, onDraw, wide }) {
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 18 }}>
         {PROMPTS.map((q, idx) => (
-          <Chip key={q} label={q} selected={chosen === idx} onPress={() => setChosen(idx)} style={{ marginEnd: 8 }} />
+          <Chip key={q} label={q} selected={chosen === idx} onPress={() => setChosen(idx)} style={{ ...me(8) }} />
         ))}
       </View>
 
       <View style={{ flexDirection: 'row', marginTop: 16 }}>
         <View style={{ width: 1, backgroundColor: 'rgba(194,59,34,0.55)' }} />
-        <View style={{ flex: 1, paddingStart: 12 }}>
+        <View style={{ flex: 1, ...ps(12) }}>
           {explainAnswer.map((line, idx) => (
             <View key={idx} style={{ flexDirection: 'row', marginBottom: 10 }}>
               <S size={14} w="700" color={C.red} align="center" style={{ width: 20, marginTop: 2 }}>
@@ -597,7 +597,7 @@ function ExplainPanel({ page, onDraw, wide }) {
             </View>
           ))}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 }}>
-            <RedPenButton label="ارسمها على السلايد" icon="edit-2" height={44} size={15} onPress={onDraw} style={{ marginEnd: 10, marginBottom: 8 }} />
+            <RedPenButton label="ارسمها على السلايد" icon="edit-2" height={44} size={15} onPress={onDraw} style={{ ...me(10), marginBottom: 8 }} />
             <OutlineButton label="ما زلت مو فاهم" height={44} onPress={() => {}} />
           </View>
         </View>

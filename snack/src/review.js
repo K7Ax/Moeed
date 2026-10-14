@@ -1,7 +1,7 @@
 // The predictions you got wrong, each on an index card with its slide clipped to it.
 import React, { useState } from 'react';
 import { LayoutAnimation, Platform, ScrollView, UIManager, View } from 'react-native';
-import { C, Rich, S, T, ltr } from './theme';
+import { C, Rich, S, T, ltr, ms, me } from './theme';
 import { reviewItems, sinePage } from './data';
 import { DoubleRule, Grain, Sheet, paperShadow, slideFrame } from './paper';
 import { Ringed, Stamp } from './pen';
@@ -39,14 +39,14 @@ export function ReviewScreen({ wide, go, items, setItems }) {
           height={46}
           disabled={!items.length}
           onPress={() => go('player')}
-          style={wide ? { marginStart: 16 } : { marginTop: 14 }}
+          style={wide ? { ...ms(16) } : { marginTop: 14 }}
         />
       </View>
       <DoubleRule style={{ marginTop: 14 }} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
-        <Chip label={`الكل ${items.length}`} selected={lecture === null} onPress={() => setLecture(null)} style={{ marginEnd: 8 }} />
+        <Chip label={`الكل ${items.length}`} selected={lecture === null} onPress={() => setLecture(null)} style={{ ...me(8) }} />
         {[5, 4].map((n) => (
-          <Chip key={n} selected={lecture === n} onPress={() => setLecture(n)} style={{ marginEnd: 8 }}>
+          <Chip key={n} selected={lecture === n} onPress={() => setLecture(n)} style={{ ...me(8) }}>
             <S size={14} w={lecture === n ? '700' : '500'} color={lecture === n ? C.paper : C.inkSoft} align="center" lh={20}>
               {`Lecture ${n}`}
             </S>
@@ -115,7 +115,7 @@ function ReviewCard({ item, wide, onReplay, onUnderstood }) {
       </T>
       <Rich text={item.question} size={wide ? 18 : 16.5} w="700" numberOfLines={2} style={{ marginTop: 6 }} />
       <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginEnd: 18 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', ...me(18) }}>
           <T size={12.5} color={C.mark} lh={18}>
             جوابك
           </T>
@@ -124,7 +124,7 @@ function ReviewCard({ item, wide, onReplay, onUnderstood }) {
             w="600"
             color={C.blue}
             lh={22}
-            style={{ marginStart: 6, textDecorationLine: 'line-through', textDecorationColor: 'rgba(36,65,143,0.7)' }}
+            style={{ ...ms(6), textDecorationLine: 'line-through', textDecorationColor: 'rgba(36,65,143,0.7)' }}
           >
             {ltr(item.yours)}
           </S>
@@ -133,7 +133,7 @@ function ReviewCard({ item, wide, onReplay, onUnderstood }) {
           <T size={12.5} color={C.mark} lh={18}>
             الصحيح
           </T>
-          <Ringed padX={2} padY={4} lw={1.6} style={{ marginStart: 6, paddingHorizontal: 6 }}>
+          <Ringed padX={2} padY={4} lw={1.6} style={{ ...ms(6), paddingHorizontal: 6 }}>
             <S size={16} w="700" color={C.red} lh={22}>
               {ltr(item.correct)}
             </S>
@@ -143,7 +143,7 @@ function ReviewCard({ item, wide, onReplay, onUnderstood }) {
     </View>
   );
   const replay = <OutlineButton label="أعد الخطوة" icon="rotate-ccw" height={44} onPress={onReplay} style={wide ? null : { flex: 1 }} />;
-  const done = <StampButton label="فهمتها" icon="check" height={44} size={15} onPress={onUnderstood} style={wide ? { marginTop: 8 } : { flex: 1, marginStart: 8 }} />;
+  const done = <StampButton label="فهمتها" icon="check" height={44} size={15} onPress={onUnderstood} style={wide ? { marginTop: 8 } : { flex: 1, ...ms(8) }} />;
 
   return (
     <View style={[{ backgroundColor: C.card, paddingHorizontal: wide ? 18 : 14, paddingTop: 22, paddingBottom: 16, marginBottom: 16 }, paperShadow(0.8)]}>

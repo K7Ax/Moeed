@@ -3,7 +3,7 @@
 import React from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
-import { C, S, T, ltr } from './theme';
+import { C, S, T, ltr, ms, me } from './theme';
 import { course, resume, sinePage } from './data';
 import { ColumnRule, DoubleRule, Grain, Hairline, Leader, Sheet, Tape, paperShadow, slideFrame } from './paper';
 import { Stamp } from './pen';
@@ -115,7 +115,7 @@ function Lead({ wide, go }) {
       <S size={17} italic color={C.inkSoft} style={{ marginTop: 8 }} lh={22}>
         {`Lecture ${l.number}`}
       </S>
-      <S size={wide ? 34 : 28} w="700" numberOfLines={1} adjustsFontSizeToFit lh={wide ? 42 : 36}>
+      <S size={wide ? 34 : 28} w="700" numberOfLines={wide ? 1 : 2} lh={wide ? 42 : 36}>
         {l.title}
       </S>
       <T size={15} color={C.inkSoft} style={{ marginTop: 10 }}>
@@ -123,12 +123,12 @@ function Lead({ wide, go }) {
       </T>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
         <ProgressTrack value={l.progress} />
-        <S size={15} w="700" style={{ marginStart: 12 }} lh={20}>
+        <S size={15} w="700" style={{ ...ms(12) }} lh={20}>
           {pct(l.progress)}
         </S>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 16 }}>
-        <InkButton label="كمّل الشرح" trailIcon={FORWARD} onPress={() => go('player')} style={{ marginEnd: 16 }} />
+        <InkButton label="كمّل الشرح" trailIcon={FORWARD} onPress={() => go('player')} style={{ ...me(16) }} />
         <T size={13} color={C.mark} style={{ marginTop: wide ? 0 : 8 }}>
           {`${resume.askCount} أسئلة توقّع في الطريق`}
         </T>
@@ -190,7 +190,7 @@ function Contents({ wide, go, reviewCount }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 22 }}>
       {list}
-      <View style={{ width: 236, marginStart: 30, marginTop: 14 }}>{note}</View>
+      <View style={{ width: 236, ...ms(30), marginTop: 14 }}>{note}</View>
     </View>
   );
 }
@@ -199,7 +199,7 @@ function Contents({ wide, go, reviewCount }) {
 function ContentsRow({ lecture, wide, onPress }) {
   const status = lecture.ready ? (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <S size={15} w="700" lh={20} style={{ marginEnd: 12 }}>
+      <S size={15} w="700" lh={20} style={{ ...me(12) }}>
         {pct(lecture.progress)}
       </S>
       <Stamp text="جاهزة" size={12} angle={-6} />
@@ -217,7 +217,7 @@ function ContentsRow({ lecture, wide, onPress }) {
       <S size={30} w="700" style={{ width: wide ? 44 : 40 }} lh={36}>
         {String(lecture.number).padStart(2, '0')}
       </S>
-      <View style={{ marginStart: 14, flexShrink: 1 }}>
+      <View style={{ ...ms(14), flexShrink: 1 }}>
         <S size={18} w="600" lh={24}>
           {lecture.title}
         </S>
@@ -264,7 +264,7 @@ function ReviewNote({ count, onPress }) {
           <T size={15} w="700" color={C.red} lh={20}>
             ابدأ المراجعة
           </T>
-          <Icon name={FORWARD} size={14} color={C.red} style={{ marginStart: 4 }} />
+          <Icon name={FORWARD} size={14} color={C.red} style={{ ...ms(4) }} />
         </View>
         <Tape angle={3} />
       </View>
