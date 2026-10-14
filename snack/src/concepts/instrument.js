@@ -55,8 +55,8 @@ const pad2 = (n) => String(n).padStart(2, '0');
 
 function Mono({ size = 12, color, children, style, align }) {
   return (
-    <S size={size} color={color} align={align} style={[{ fontFamily: mono, letterSpacing: 1 }, style]}>
-      {children}
+    <S size={size} color={color} align={align} style={[{ fontFamily: mono, letterSpacing: 1, writingDirection: 'ltr' }, style]}>
+      {typeof children === 'string' ? ltr(children) : children}
     </S>
   );
 }

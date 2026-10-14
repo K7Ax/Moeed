@@ -281,9 +281,11 @@ function Player({ wide, onBack }) {
   );
   const keys = (
     <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+      <RoundKey c={c} icon="chevron-right" onPress={p.previous} />
       <RoundKey c={c} icon="rotate-ccw" onPress={p.replay} />
       <RoundKey c={c} icon={p.auto ? 'pause' : 'play'} on={p.auto} onPress={p.toggleAuto} />
       <RoundKey c={c} label={'×' + p.speed} onPress={p.cycleSpeed} />
+      <RoundKey c={c} icon="chevron-left" on onPress={p.next} />
     </View>
   );
   const body = (sw) => (

@@ -257,7 +257,7 @@ function Player({ wide, onBack }) {
   const [area, onArea] = useSize();
   const [col, onCol] = useSize();
   const slide = (sw) => (
-    <View style={{ borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: c.line }}>
+    <View style={{ alignSelf: 'center', borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: c.line }}>
       <InkSlide
         p={p}
         width={sw}
@@ -373,7 +373,8 @@ function MarkMap({ c, size, onOpen }) {
 function Home({ wide, onOpen }) {
   const c = pal();
   const cur = LECTURES.find((l) => l.current);
-  const mapSize = wide ? 440 : 300;
+  const mapSize = 300;
+  const [mapArea, onMapArea] = useSize();
   const legend = (
     <View>
       {FLOORS.map((f) => (
@@ -461,13 +462,23 @@ function Home({ wide, onOpen }) {
       <ScrollView contentContainerStyle={{ paddingHorizontal: wide ? 40 : 18, paddingBottom: 40 }}>
         {wide ? (
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 10 }}>
-            <View style={{ width: 380 }}>
+            <View style={{ width: 340 }}>
               {resumeCard}
               {review}
             </View>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-              <View style={{ width: 230, marginLeft: 8 }}>{legend}</View>
-              <MarkMap c={c} size={mapSize} onOpen={onOpen} />
+            <View style={{ flex: 1, marginRight: 28 }} onLayout={onMapArea}>
+              {mapArea &&
+                (mapArea.w >= 600 ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 220, marginLeft: 12 }}>{legend}</View>
+                    <MarkMap c={c} size={Math.min(460, mapArea.w - 240)} onOpen={onOpen} />
+                  </View>
+                ) : (
+                  <View style={{ alignItems: 'center' }}>
+                    <MarkMap c={c} size={Math.min(400, mapArea.w)} onOpen={onOpen} />
+                    <View style={{ alignSelf: 'stretch', marginTop: 8 }}>{legend}</View>
+                  </View>
+                ))}
             </View>
           </View>
         ) : (
