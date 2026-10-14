@@ -1,57 +1,78 @@
-// مُعيد · «الملزمة» — an Expo Snack preview of the iPad app's screens.
+// مُعيد: an Expo Snack preview of the iPad app's screens.
 // The real app is SwiftUI (K7Ax/Moeed); this mirrors its design so it can be tried in Expo Go.
 import React, { useState } from 'react';
-import { StatusBar, View, useWindowDimensions } from 'react-native';
+import { StatusBar, View, useColorScheme, useWindowDimensions } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { C } from './src/theme';
+import { C, applyScheme } from './src/theme';
 import { sinePage } from './src/data';
-import { Desk } from './src/paper';
-import { IndexTabs, Sidebar } from './src/shell';
+import { Drawer, MobileHeader, Rail, Sidebar } from './src/shell';
 import { LibraryScreen } from './src/library';
 import { PlayerScreen } from './src/player';
 import { ReviewScreen, initialReview } from './src/review';
 import { ImportScreen } from './src/import';
+import { Intro } from './src/intro';
+
+const TITLES = { library: 'مُعيد', review: 'المراجعة', import: 'محاضرة جديدة', player: 'الشرح' };
 
 export default function App() {
   const { width } = useWindowDimensions();
+  const system = useColorScheme();
+  const [mode, setMode] = useState('system');
+  const scheme = mode === 'system' ? (system === 'dark' ? 'dark' : 'light') : mode;
+  // The palette is swapped before anything below reads it.
+  applyScheme(scheme);
+
   const wide = width >= 900;
+  const [intro, setIntro] = useState(true);
   const [route, setRoute] = useState('library');
+  const [collapsed, setCollapsed] = useState(false);
+  const [drawer, setDrawer] = useState(false);
   const [items, setItems] = useState(initialReview);
   const reviewCount = items.length + 2;
-  const nav = { route, go: setRoute, reviewCount };
+
+  const go = (r) => {
+    setRoute(r);
+    setDrawer(false);
+    // The player wants the whole width; the sidebar folds to a rail there and opens again after.
+    setCollapsed(r === 'player' || r === 'import');
+  };
+  const nav = { route, go, reviewCount, mode, setMode };
 
   let screen;
-  if (route === 'player') screen = <PlayerScreen page={sinePage} wide={wide} onBack={() => setRoute('library')} />;
-  else if (route === 'import') screen = <ImportScreen wide={wide} go={setRoute} />;
-  else if (route === 'review') screen = <ReviewScreen wide={wide} go={setRoute} items={items} setItems={setItems} />;
-  else screen = <LibraryScreen wide={wide} go={setRoute} reviewCount={reviewCount} />;
+  if (route === 'player') screen = <PlayerScreen page={sinePage} wide={wide} onBack={() => go('library')} />;
+  else if (route === 'import') screen = <ImportScreen wide={wide} go={go} />;
+  else if (route === 'review') screen = <ReviewScreen wide={wide} go={go} items={items} setItems={setItems} />;
+  else screen = <LibraryScreen wide={wide} go={go} reviewCount={reviewCount} />;
 
-  // On iPad the library and review sit beside the bound index page; on a phone the index is tabs.
-  const bound = route === 'library' || route === 'review';
   let body;
-  if (route === 'player') body = screen;
-  else if (wide && bound) {
+  if (wide) {
     body = (
-      <Desk style={{ flexDirection: 'row', padding: 16 }}>
-        <Sidebar {...nav} />
-        {screen}
-      </Desk>
-    );
-  } else if (wide) body = <Desk>{screen}</Desk>;
-  else {
-    body = (
-      <Desk>
+      <View style={{ flex: 1, flexDirection: 'row' }}>
+        {collapsed ? <Rail {...nav} onExpand={() => setCollapsed(false)} /> : <Sidebar {...nav} onCollapse={() => setCollapsed(true)} />}
         <View style={{ flex: 1 }}>{screen}</View>
-        <IndexTabs {...nav} />
-      </Desk>
+      </View>
+    );
+  } else {
+    const bare = route === 'player' || route === 'import';
+    body = (
+      <View style={{ flex: 1 }}>
+        {!bare && <MobileHeader title={TITLES[route]} onMenu={() => setDrawer(true)} onNew={() => go('import')} />}
+        <View style={{ flex: 1 }}>{screen}</View>
+        <Drawer open={drawer} onClose={() => setDrawer(false)}>
+          <Sidebar {...nav} width={300} onClose={() => setDrawer(false)} />
+        </Drawer>
+      </View>
     );
   }
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: C.desk }} edges={['top', 'bottom', 'left', 'right']}>
-        <View style={{ flex: 1, direction: 'rtl' }}>{body}</View>
+      <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'bottom', 'left', 'right']}>
+        <View style={{ flex: 1, direction: 'rtl', backgroundColor: C.bg }}>
+          {body}
+          {intro && <Intro onDone={() => setIntro(false)} />}
+        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );

@@ -1,11 +1,11 @@
-// The printed slide, the tutor's ink over it, and the caption slip.
+// The printed slide, the tutor's ink over it, and the tutor's words beside it.
 // Everything on the slide is laid out in slide space (800 × 600), always left-to-right.
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Polygon, Rect, Text as SvgText } from 'react-native-svg';
-import { C, F, INK, Rich, S, clamp01, easeInOut, inkDelay, inkTotal } from './theme';
-import { Grain, paperShadow } from './paper';
-import { DrawnPath, PenRing, toPath } from './pen';
+import { C, F, INK, R, Rich, T, clamp01, easeInOut, inkDelay, inkTotal, lift } from './theme';
+import { DrawnPath, toPath } from './pen';
+import { TutorAvatar, Typing } from './ui';
 
 // MARK: Clock
 
@@ -133,7 +133,7 @@ function Mark({ m, progress, faded }) {
           fontSize={26}
           fontFamily={F.hand}
           fontWeight="bold"
-          fill={C.red}
+          fill={C.pen}
           opacity={progress * op}
         >
           {m.text}
@@ -147,7 +147,7 @@ function Mark({ m, progress, faded }) {
           y1={m.a[1]}
           x2={b[0]}
           y2={b[1]}
-          stroke={C.red}
+          stroke={C.pen}
           strokeOpacity={0.8 * op}
           strokeWidth={2.5}
           strokeLinecap="round"
@@ -156,9 +156,9 @@ function Mark({ m, progress, faded }) {
       );
     }
     case 'dot':
-      return <DrawnPath geo={markGeometry(m)} progress={progress} color={C.red} width={7} opacity={op} />;
+      return <DrawnPath geo={markGeometry(m)} progress={progress} color={C.pen} width={7} opacity={op} />;
     default:
-      return <DrawnPath geo={markGeometry(m)} progress={progress} color={C.red} width={4.5} opacity={op} />;
+      return <DrawnPath geo={markGeometry(m)} progress={progress} color={C.pen} width={4.5} opacity={op} />;
   }
 }
 
@@ -271,8 +271,8 @@ export function SlideStage({ page, width, pastMarks = [], marks = [], playKey = 
               width={selection[2]}
               height={selection[3]}
               rx={10}
-              fill={C.blueTint}
-              stroke={C.blue}
+              fill={C.studentTint}
+              stroke={C.studentPen}
               strokeWidth={2.5 / s}
               strokeDasharray={`${8 / s} ${6 / s}`}
             />
@@ -280,7 +280,7 @@ export function SlideStage({ page, width, pastMarks = [], marks = [], playKey = 
               [selection[0] + selection[2], selection[1]],
               [selection[0], selection[1] + selection[3]],
             ].map((p, i) => (
-              <Circle key={i} cx={p[0]} cy={p[1]} r={8 / s} fill={C.blue} stroke="#FFFFFF" strokeWidth={2 / s} />
+              <Circle key={i} cx={p[0]} cy={p[1]} r={8 / s} fill={C.studentPen} stroke="#FFFFFF" strokeWidth={2 / s} />
             ))}
           </G>
         )}
@@ -290,7 +290,7 @@ export function SlideStage({ page, width, pastMarks = [], marks = [], playKey = 
             y1={clampTo(card, anchor)[1]}
             x2={anchor[0]}
             y2={anchor[1]}
-            stroke={C.red}
+            stroke={C.pen}
             strokeOpacity={0.75}
             strokeWidth={2 / s}
             strokeLinecap="round"
@@ -336,42 +336,45 @@ export function RegionCrop({ page, rect, width, pad = 6 }) {
   );
 }
 
-// MARK: Caption slip
+// MARK: The tutor's words
 
-/** One phrase coming into focus; space is reserved, so nothing jumps. */
+/** One phrase arriving the way an assistant's answer streams in; space is reserved, so nothing jumps. */
 function Phrase({ text, state, size }) {
   const v = useRef(new Animated.Value(state === 'hidden' ? 0 : 1)).current;
-  const target = state === 'hidden' ? 0 : state === 'past' ? 0.5 : 1;
+  const target = state === 'hidden' ? 0 : state === 'past' ? 0.55 : 1;
   useEffect(() => {
-    Animated.timing(v, { toValue: target, duration: 300, useNativeDriver: true }).start();
+    Animated.timing(v, { toValue: target, duration: 320, useNativeDriver: true }).start();
   }, [target]);
   return (
     <Animated.View
       style={{
         opacity: v,
-        transform: [{ translateY: v.interpolate({ inputRange: [0, 0.5, 1], outputRange: [6, 0, 0] }) }],
+        transform: [{ translateY: v.interpolate({ inputRange: [0, 0.55, 1], outputRange: [5, 0, 0] }) }],
       }}
     >
-      <Rich text={text} size={size} w={state === 'current' ? '600' : '400'} />
+      <Rich text={text} size={size} w={state === 'current' ? '500' : '400'} lh={Math.round(size * 1.6)} />
     </Animated.View>
   );
 }
 
-/** The tutor's words for one step, on a slip of card with the step number ringed in red pen. */
+/** The tutor's words for one step, as a message: avatar, step label, phrases streaming in. */
 export function CaptionCard({ number, phrases, revealed, compact, style }) {
-  const size = compact ? 16 : 18;
+  const size = compact ? 15.5 : 17;
   return (
-    <View style={[{ backgroundColor: C.card, borderWidth: 0.5, borderColor: 'rgba(23,21,19,0.12)' }, paperShadow(0.9), style]}>
-      <Grain density={0.5} />
-      <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 14 }}>
-        <View style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}>
-          <S size={16} w="700" color={C.red} align="center" lh={20}>
-            {String(number)}
-          </S>
-          <PenRing w={26} h={26} lw={1.8} style={{ top: -2, left: -2 }} />
-        </View>
-        <View style={{ width: 1, backgroundColor: 'rgba(194,59,34,0.55)', marginVertical: -14, marginHorizontal: 6 }} />
-        <View style={{ flex: 1, paddingHorizontal: 6 }}>
+    <View
+      style={[
+        { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.line, paddingHorizontal: 14, paddingVertical: 12 },
+        lift(1.2),
+        style,
+      ]}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        <TutorAvatar size={compact ? 24 : 28} />
+        <View style={{ flex: 1, marginHorizontal: 10 }}>
+          <T size={12} w="600" color={C.text3} lh={compact ? 24 : 28}>
+            {`معيد · الخطوة ${number}`}
+          </T>
+          {revealed === 0 && <Typing />}
           {phrases.map((p, i) => (
             <Phrase key={i} text={p} size={size} state={i >= revealed ? 'hidden' : i === revealed - 1 ? 'current' : 'past'} />
           ))}
@@ -380,5 +383,3 @@ export function CaptionCard({ number, phrases, revealed, compact, style }) {
     </View>
   );
 }
-
-export const stageStyles = StyleSheet.create({});

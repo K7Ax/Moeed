@@ -1,11 +1,9 @@
-// Buttons and small instruments, all printed: toner keys, ruled boxes, index tabs.
+// Buttons and small instruments: quiet, rounded, one solid key per screen.
 import React from 'react';
-import { Platform, Pressable, View } from 'react-native';
-import Svg, { G, Line, Polygon } from 'react-native-svg';
+import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { C, T } from './theme';
-import { swipePoints, useSize } from './paper';
+import { C, R, START, T } from './theme';
 
 export function haptic(kind) {
   if (Platform.OS === 'web') return;
@@ -17,111 +15,162 @@ export function haptic(kind) {
 }
 
 // In right-to-left, "forward" points left.
-export const FORWARD = 'chevron-left';
+export const FORWARD = 'arrow-left';
 export const BACK = 'chevron-right';
 
-export function Icon({ name, size = 15, color = C.ink, style }) {
-  return <Feather name={name} size={size} color={color} style={style} />;
+export function Icon({ name, size = 16, color, style }) {
+  return <Feather name={name} size={size} color={color || C.text} style={style} />;
 }
 
-function Content({ label, icon, trailIcon, color, size, w }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-      {icon ? <Icon name={icon} size={size - 1} color={color} style={{ marginHorizontal: 4 }} /> : null}
-      {label ? (
-        <T size={size} w={w} color={color} align="center" lh={size * 1.35}>
-          {label}
-        </T>
-      ) : null}
-      {trailIcon ? <Icon name={trailIcon} size={size - 1} color={color} style={{ marginHorizontal: 4 }} /> : null}
-    </View>
-  );
-}
+const kinds = () => ({
+  primary: { bg: C.text, fg: C.inverse, border: 'transparent', pressed: 0.82 },
+  accent: { bg: C.accent, fg: '#FFFFFF', border: 'transparent', pressed: 0.85 },
+  green: { bg: C.green, fg: '#FFFFFF', border: 'transparent', pressed: 0.85 },
+  secondary: { bg: C.surface, fg: C.text, border: C.lineStrong, pressed: 0.7 },
+  ghost: { bg: 'transparent', fg: C.text2, border: 'transparent', pressed: 0.55 },
+});
 
-/**
- * A solid printed key: toner black (or the tutor's red), paper-coloured letters, square corners.
- * Pressing it sinks it into the page instead of dimming it.
- */
-export function InkButton({ label, icon, trailIcon, onPress, fill = C.ink, fg = C.paper, height = 48, disabled, style, size = 16 }) {
+export function Button({ label, icon, trailIcon, onPress, kind = 'primary', height = 44, size = 15, disabled, style }) {
+  const k = kinds()[kind];
   return (
-    <Pressable onPress={onPress} disabled={disabled} style={[{ opacity: disabled ? 0.35 : 1 }, style]}>
-      {({ pressed }) => (
-        <View style={{ paddingBottom: 3 }}>
-          <View style={{ position: 'absolute', top: 3, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(23,21,19,0.85)' }} />
-          <View
-            style={{
-              minHeight: height,
-              paddingHorizontal: 22,
-              justifyContent: 'center',
-              backgroundColor: fill,
-              transform: [{ translateY: pressed ? 3 : 0 }],
-            }}
-          >
-            <Content label={label} icon={icon} trailIcon={trailIcon} color={fg} size={size} w="700" />
-          </View>
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
-export const RedPenButton = (p) => <InkButton fill={C.red} {...p} />;
-export const StampButton = (p) => <InkButton fill={C.stamp} {...p} />;
-
-/** A ruled box: a hairline of ink around the words, nothing behind them. */
-export function OutlineButton({ label, icon, trailIcon, onPress, height = 48, style, disabled }) {
-  return (
-    <Pressable onPress={onPress} disabled={disabled} style={style}>
+    <Pressable onPress={onPress} disabled={disabled} style={[{ opacity: disabled ? 0.38 : 1 }, style]}>
       {({ pressed }) => (
         <View
           style={{
             minHeight: height,
-            paddingHorizontal: 16,
+            paddingHorizontal: kind === 'ghost' ? 10 : 18,
+            borderRadius: R.pill,
+            flexDirection: 'row',
+            alignItems: 'center',
             justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: C.ink,
-            backgroundColor: pressed ? 'rgba(23,21,19,0.08)' : 'transparent',
-            opacity: disabled ? 0.35 : 1,
+            backgroundColor: k.bg,
+            borderWidth: k.border === 'transparent' ? 0 : StyleSheet.hairlineWidth * 2,
+            borderColor: k.border,
+            opacity: pressed ? k.pressed : 1,
           }}
         >
-          <Content label={label} icon={icon} trailIcon={trailIcon} color={C.ink} size={15} w="600" />
+          {icon ? <Icon name={icon} size={size} color={k.fg} style={{ marginHorizontal: 4 }} /> : null}
+          {label ? (
+            <T size={size} w="600" color={k.fg} align="center" lh={size * 1.4}>
+              {label}
+            </T>
+          ) : null}
+          {trailIcon ? <Icon name={trailIcon} size={size} color={k.fg} style={{ marginHorizontal: 4 }} /> : null}
         </View>
       )}
     </Pressable>
   );
 }
 
-/** A tab in an index: the selected one is printed solid. */
-export function Chip({ label, icon, selected, onPress, style, children }) {
+export function IconButton({ name, onPress, label, size = 40, iconSize = 18, color, filled, disabled, style }) {
   return (
-    <Pressable onPress={onPress} style={[{ minHeight: 44, justifyContent: 'center' }, style]}>
+    <Pressable onPress={onPress} disabled={disabled} accessibilityLabel={label} hitSlop={4} style={[{ opacity: disabled ? 0.3 : 1 }, style]}>
       {({ pressed }) => (
         <View
           style={{
-            minHeight: 40,
-            paddingHorizontal: 14,
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: selected ? C.ink : 'transparent',
-            borderWidth: 1,
-            borderColor: selected ? C.ink : C.rule,
-            opacity: pressed ? 0.75 : 1,
+            backgroundColor: filled ? C.text : pressed ? C.raised : 'transparent',
           }}
         >
-          {children || <Content label={label} icon={icon} color={selected ? C.paper : C.inkSoft} size={14} w={selected ? '700' : '500'} />}
+          <Icon name={name} size={iconSize} color={filled ? C.inverse : color || C.text2} />
         </View>
       )}
     </Pressable>
   );
 }
 
-/** Words with a pen underline, for quiet navigation like «المكتبة ›». */
-export function UnderLink({ label, onPress, icon = BACK }) {
+/** A rounded suggestion or filter. */
+export function Chip({ label, icon, selected, onPress, style, children }) {
   return (
-    <Pressable onPress={onPress} hitSlop={8} style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
+    <Pressable onPress={onPress} style={style}>
       {({ pressed }) => (
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, borderBottomWidth: 1, borderColor: C.ink, opacity: pressed ? 0.6 : 1 }}>
-          <Icon name={icon} size={14} style={{ marginHorizontal: 3 }} />
-          <T size={15} w="600" lh={20}>
+        <View
+          style={{
+            minHeight: 36,
+            paddingHorizontal: 14,
+            borderRadius: R.pill,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: selected ? C.text : pressed ? C.raised : C.surface,
+            borderWidth: StyleSheet.hairlineWidth * 2,
+            borderColor: selected ? C.text : C.lineStrong,
+          }}
+        >
+          {icon ? <Icon name={icon} size={14} color={selected ? C.inverse : C.text2} style={{ marginHorizontal: 3 }} /> : null}
+          {children ||
+            (label ? (
+              <T size={14} w={selected ? '600' : '500'} color={selected ? C.inverse : C.text} lh={20}>
+                {label}
+              </T>
+            ) : null)}
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+/** Two or three options in a rounded track, one of them raised. */
+export function Segmented({ options, value, onChange, height = 34, style }) {
+  return (
+    <View style={[{ flexDirection: 'row', backgroundColor: C.raised, borderRadius: R.pill, padding: 3 }, style]}>
+      {options.map((o) => {
+        const on = o.key === value;
+        return (
+          <Pressable
+            key={o.key}
+            onPress={() => onChange(o.key)}
+            accessibilityLabel={o.label}
+            accessibilityState={{ selected: on }}
+            style={{
+              flex: o.label && !o.iconOnly ? undefined : 1,
+              height: height - 6,
+              paddingHorizontal: 12,
+              borderRadius: R.pill,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: on ? C.surface : 'transparent',
+              borderWidth: on ? StyleSheet.hairlineWidth : 0,
+              borderColor: C.lineStrong,
+            }}
+          >
+            {o.icon ? <Icon name={o.icon} size={14} color={on ? C.text : C.text3} style={{ marginHorizontal: 3 }} /> : null}
+            {o.label && !o.iconOnly ? (
+              <T size={13.5} w={on ? '600' : '500'} color={on ? C.text : C.text2} lh={18}>
+                {o.label}
+              </T>
+            ) : null}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** A toggle shown as a pill that fills when on. */
+export function Toggle({ label, icon, on, onPress }) {
+  return (
+    <Pressable onPress={onPress} accessibilityState={{ checked: on }}>
+      {({ pressed }) => (
+        <View
+          style={{
+            height: 34,
+            paddingHorizontal: 12,
+            borderRadius: R.pill,
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: on ? C.accentSoft : pressed ? C.raised : 'transparent',
+            borderWidth: StyleSheet.hairlineWidth * 2,
+            borderColor: on ? 'transparent' : C.lineStrong,
+          }}
+        >
+          <Icon name={icon} size={14} color={on ? C.accent : C.text3} style={{ marginHorizontal: 3 }} />
+          <T size={13.5} w="600" color={on ? C.accent : C.text2} lh={18}>
             {label}
           </T>
         </View>
@@ -130,35 +179,70 @@ export function UnderLink({ label, onPress, icon = BACK }) {
   );
 }
 
-export function SquareIcon({ name, onPress, disabled, label, size = 44 }) {
+/** The round send key. */
+export function SendButton({ onPress, active = true, size = 36 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityLabel={label}
-      style={{ width: size, height: size, borderWidth: 1, borderColor: C.ink, alignItems: 'center', justifyContent: 'center', opacity: disabled ? 0.3 : 1 }}
-    >
-      <Icon name={name} size={17} />
+    <Pressable onPress={onPress} accessibilityLabel="أرسل" hitSlop={4}>
+      {({ pressed }) => (
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: active ? C.accent : C.raised,
+            opacity: pressed ? 0.8 : 1,
+          }}
+        >
+          <Icon name="arrow-up" size={18} color={active ? '#FFFFFF' : C.text3} />
+        </View>
+      )}
     </Pressable>
   );
 }
 
-/** Progress as a highlighter run along a dotted rule, filling from the reading start (the right). */
-export function ProgressTrack({ value, height = 10, style }) {
-  const [size, onLayout] = useSize();
-  const v = Math.min(1, Math.max(0, value));
+/** The message box every assistant has: words in, a row of tools, the send key. */
+export function Composer({ value, onChangeText, placeholder, onSend, tools, minHeight = 52, style }) {
   return (
-    <View onLayout={onLayout} style={[{ height, flex: 1 }, style]}>
-      {size && (
-        <Svg width={size.w} height={height}>
-          <Line x1={2} y1={height / 2} x2={size.w} y2={height / 2} stroke={C.mark} strokeWidth={1.3} strokeLinecap="round" strokeDasharray="0.1 5" />
-          {v > 0 && (
-            <G transform={`translate(${(size.w * (1 - v)).toFixed(1)},0)`}>
-              <Polygon points={swipePoints(size.w * v - 2, height, 2)} fill={C.highlighter} opacity={0.75} />
-            </G>
-          )}
-        </Svg>
-      )}
+    <View
+      style={[
+        {
+          backgroundColor: C.surface,
+          borderRadius: R.xl,
+          borderWidth: StyleSheet.hairlineWidth * 2,
+          borderColor: C.lineStrong,
+          paddingHorizontal: 14,
+          paddingTop: 10,
+          paddingBottom: 8,
+        },
+        style,
+      ]}
+    >
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={C.text3}
+        multiline
+        style={{
+          minHeight,
+          fontSize: 16,
+          lineHeight: 24,
+          color: C.text,
+          textAlign: START,
+          writingDirection: 'rtl',
+          textAlignVertical: 'top',
+          paddingHorizontal: 4,
+          paddingVertical: 4,
+          outlineStyle: 'none',
+        }}
+      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+        {tools}
+        <View style={{ flex: 1 }} />
+        <SendButton onPress={onSend} active={!!(value && value.trim())} />
+      </View>
     </View>
   );
 }

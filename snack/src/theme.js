@@ -1,34 +1,68 @@
-// «الملزمة»: the photocopied lecture packet a معيد goes through with you.
-// Paper stock, black toner, the tutor's red pen, your blue ballpoint, a yellow highlighter.
-// No glow, no glass, no gradients.
+// مُعيد: a quiet study app in the manner of the AI assistants, with the warmth of paper kept.
+// Light is cream stock, dark is warm charcoal; the tutor's red pen is the one accent.
+// The slide itself is always a printed white page, in both modes.
 import React from 'react';
 import { I18nManager, Platform, Text } from 'react-native';
 
-export const C = {
-  desk: '#D9CFBD',
-  paper: '#F5EFE3',
-  paperShade: '#ECE4D4',
-  card: '#FBF8F1',
-  sticky: '#F6DF6E',
-  tape: 'rgba(237,230,211,0.82)',
+const light = {
+  bg: '#FAF8F3',
+  side: '#F3F0E8',
+  surface: '#FFFFFF',
+  raised: '#F2EEE6',
+  line: 'rgba(40,33,24,0.10)',
+  lineStrong: 'rgba(40,33,24,0.18)',
+  scrim: 'rgba(20,17,13,0.32)',
 
-  ink: '#171513',
-  inkSoft: '#56504A',
-  mark: '#8C8579',
-  rule: '#CBC2B2',
-  hole: '#BDB19C',
+  text: '#1F1C18',
+  text2: '#6B655C',
+  text3: '#9C968C',
+  inverse: '#FAF8F3',
 
-  // Red is the tutor's pen: it marks what to look at, never "wrong".
-  red: '#C23B22',
-  // The student's own ballpoint: your picks, your questions.
-  blue: '#24418F',
-  blueTint: 'rgba(36,65,143,0.08)',
-  highlighter: '#F3D13A',
-  // Rubber-stamp teal: done, ready, understood.
-  stamp: '#0F5B63',
+  // The tutor's pen.
+  accent: '#C2492E',
+  accentSoft: 'rgba(194,73,46,0.10)',
+  // The student's own pen: your picks, your questions.
+  blue: '#2F56B0',
+  blueSoft: 'rgba(47,86,176,0.09)',
+  // Understood, ready, done.
+  green: '#1E7A6C',
+  greenSoft: 'rgba(30,122,108,0.10)',
+
+  shadow: 'rgba(40,30,15,1)',
+  shadowOpacity: 0.07,
+};
+
+const dark = {
+  bg: '#1E1D1B',
+  side: '#191817',
+  surface: '#272623',
+  raised: '#32302C',
+  line: 'rgba(255,246,230,0.08)',
+  lineStrong: 'rgba(255,246,230,0.15)',
+  scrim: 'rgba(0,0,0,0.5)',
+
+  text: '#EEEAE3',
+  text2: '#A8A297',
+  text3: '#76716A',
+  inverse: '#1E1D1B',
+
+  accent: '#E5704F',
+  accentSoft: 'rgba(229,112,79,0.14)',
+  blue: '#8EA7EE',
+  blueSoft: 'rgba(142,167,238,0.13)',
+  green: '#5BBDA9',
+  greenSoft: 'rgba(91,189,169,0.13)',
+
+  shadow: '#000000',
+  shadowOpacity: 0.3,
+};
+
+// The printed slide and the ink on it never change with the theme.
+const page = {
+  pen: '#C23B22',
+  studentPen: '#24418F',
+  studentTint: 'rgba(36,65,143,0.08)',
   spotlight: 'rgba(23,21,19,0.5)',
-
-  // The sample slide is a printed page, so it stays dark-on-light.
   slideTitle: '#1C3D6E',
   slideInk: '#1F2328',
   slideLabel: '#3B424A',
@@ -38,10 +72,31 @@ export const C = {
   slideWave: '#2F6DB5',
 };
 
+/** The live palette. `applyScheme` swaps it in place, and the app re-renders from the root. */
+export const C = { ...light, ...page };
+let current = 'light';
+export function applyScheme(name) {
+  if (name === current) return;
+  current = name;
+  Object.assign(C, name === 'dark' ? dark : light);
+}
+export const isDark = () => current === 'dark';
+
+/** A soft lift for cards; none in dark, where borders carry the edges. */
+export const lift = (level = 1) => ({
+  shadowColor: C.shadow,
+  shadowOpacity: isDark() ? 0 : C.shadowOpacity * level,
+  shadowRadius: 14 * level,
+  shadowOffset: { width: 0, height: 4 * level },
+  elevation: isDark() ? 0 : 2 * level,
+});
+
+export const R = { sm: 10, md: 14, lg: 20, xl: 26, pill: 999 };
+
 export const F = {
-  // Latin, codes and figures are set the way a paper sets them: in a serif.
+  // Latin titles and figures are set in a serif, the way the slides set them.
   serif: Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, "Times New Roman", serif' }),
-  // The tutor's handwriting for ink labels.
+  // The tutor's handwriting for ink labels on the slide.
   hand: Platform.select({ ios: 'Noteworthy-Bold', android: 'casual', default: '"Bradley Hand", "Segoe Print", "Comic Sans MS", cursive' }),
 };
 
@@ -56,7 +111,7 @@ const RLM = '‏';
 export const ltr = (s) => '⁦' + s + '⁩';
 
 /** Arabic text: one family, hierarchy by weight and size only. */
-export function T({ size = 15, w = '400', color = C.ink, serif, italic, align, lh, style, children, ...rest }) {
+export function T({ size = 15, w = '400', color, serif, italic, align, lh, style, children, ...rest }) {
   return (
     <Text
       {...rest}
@@ -64,12 +119,12 @@ export function T({ size = 15, w = '400', color = C.ink, serif, italic, align, l
         {
           fontSize: size,
           fontWeight: w,
-          color,
+          color: color || C.text,
           textAlign: align || START,
           writingDirection: 'rtl',
           fontFamily: serif ? F.serif : undefined,
           fontStyle: italic ? 'italic' : 'normal',
-          lineHeight: lh === undefined ? (serif ? undefined : Math.round(size * 1.45)) : lh,
+          lineHeight: lh === undefined ? (serif ? undefined : Math.round(size * 1.5)) : lh,
         },
         style,
       ]}
@@ -85,7 +140,7 @@ export function S(props) {
 }
 
 /** Text between backticks is math or Latin: bold, and kept left-to-right inside the Arabic. */
-export function Rich({ text, size = 16, w = '400', color = C.ink, style, ...rest }) {
+export function Rich({ text, size = 16, w = '400', color, style, ...rest }) {
   const parts = text.split('`');
   return (
     <T size={size} w={w} color={color} style={style} {...rest}>
@@ -93,7 +148,7 @@ export function Rich({ text, size = 16, w = '400', color = C.ink, style, ...rest
       {parts.map((p, i) =>
         i % 2 === 1 ? (
           <Text key={i} style={{ fontWeight: '700' }}>
-            {ltr(p.replace(/ /g, ' '))}
+            {ltr(p.replace(/ /g, ' '))}
           </Text>
         ) : (
           p
@@ -129,6 +184,7 @@ export const inkDelay = (i) => i * (INK.stroke + INK.gap);
 export const inkTotal = (n) => (n === 0 ? 0 : inkDelay(n - 1) + INK.stroke);
 
 export const easeInOut = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+export const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 export const clamp01 = (x) => Math.min(1, Math.max(0, x));
 
 // Leading/trailing spacing in the right-to-left layout. Native resolves marginStart against the
@@ -139,3 +195,5 @@ export const ms = (n) => (web ? { marginRight: n } : { marginStart: n });
 export const me = (n) => (web ? { marginLeft: n } : { marginEnd: n });
 export const ps = (n) => (web ? { paddingRight: n } : { paddingStart: n });
 export const pe = (n) => (web ? { paddingLeft: n } : { paddingEnd: n });
+/** The physical side where reading starts, for absolutely positioned things. */
+export const startEdge = (n) => (swapped ? { left: n } : { right: n });
