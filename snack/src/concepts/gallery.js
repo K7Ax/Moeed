@@ -10,9 +10,10 @@ import { hashiya } from './hashiya';
 import { misbaha } from './misbaha';
 import { stairs } from './stairs';
 import { instrument } from './instrument';
+import { native } from './native';
 
-export const DIRECTIONS = [hashiya, misbaha, stairs, instrument];
-const LETTERS = ['أ', 'ب', 'ج', 'د'];
+export const DIRECTIONS = [native, hashiya, misbaha, stairs, instrument];
+const LETTERS = ['جديد', 'أ', 'ب', 'ج', 'د'];
 
 function Bar({ title, onBack, mode, setMode }) {
   const dark = isDark();
@@ -74,7 +75,8 @@ function Card({ d, letter, onOpen, wide }) {
 }
 
 export function ConceptsRoot({ wide, mode, setMode, legacy }) {
-  const [open, setOpen] = useState(null);
+  // The newest direction opens first; the others stay one tap away for comparison.
+  const [open, setOpen] = useState('native');
   const d = DIRECTIONS.find((x) => x.key === open);
   if (open === 'legacy') {
     return (
@@ -104,7 +106,7 @@ export function ConceptsRoot({ wide, mode, setMode, legacy }) {
             اختر اتجاه مُعيد
           </T>
           <T size={14} color={C.text2}>
-            أربعة اتجاهات مختلفة فعلاً. كل واحد فيه الرئيسية والمشغّل، فاتح وداكن.
+            «الأصلي» مبني على أنماط تطبيقات أبل الكبيرة، والأربعة بعده تجارب سابقة. كل واحد فيه الرئيسية والمشغّل، فاتح وداكن.
           </T>
         </View>
         <Pressable onPress={() => setMode(isDark() ? 'light' : 'dark')} hitSlop={8} style={{ padding: 8 }}>
