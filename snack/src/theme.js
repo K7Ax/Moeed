@@ -93,7 +93,7 @@ export function Rich({ text, size = 16, w = '400', color = C.ink, style, ...rest
       {parts.map((p, i) =>
         i % 2 === 1 ? (
           <Text key={i} style={{ fontWeight: '700' }}>
-            {ltr(p)}
+            {ltr(p.replace(/ /g, ' '))}
           </Text>
         ) : (
           p

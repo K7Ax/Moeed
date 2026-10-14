@@ -115,7 +115,7 @@ function Lead({ wide, go }) {
       <S size={17} italic color={C.inkSoft} style={{ marginTop: 8 }} lh={22}>
         {`Lecture ${l.number}`}
       </S>
-      <S size={wide ? 34 : 28} w="700" numberOfLines={wide ? 1 : 2} lh={wide ? 42 : 36}>
+      <S size={wide ? 34 : 28} w="700" numberOfLines={2} lh={wide ? 42 : 36}>
         {l.title}
       </S>
       <T size={15} color={C.inkSoft} style={{ marginTop: 10 }}>
@@ -202,7 +202,7 @@ function ContentsRow({ lecture, wide, onPress }) {
       <S size={15} w="700" lh={20} style={{ ...me(12) }}>
         {pct(lecture.progress)}
       </S>
-      <Stamp text="جاهزة" size={12} angle={-6} />
+      <Stamp text="جاهزة" size={13} angle={-6} />
     </View>
   ) : (
     <View style={{ alignItems: 'flex-end' }}>

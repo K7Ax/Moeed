@@ -145,7 +145,7 @@ export function PlayerScreen({ page, wide, onBack }) {
       content = (
         <View style={{ flex: 1, flexDirection: 'row' }}>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            {stage(sw, explaining ? { selection: explainSelection, animate: false, marks: [] } : {})}
+            {stage(sw, explaining ? { selection: explainSelection, animate: false, marks: [], pastMarks: [] } : {})}
           </View>
           <View style={{ width: panelW, ...ms(26) }}>
             {explaining ? (
@@ -183,7 +183,7 @@ export function PlayerScreen({ page, wide, onBack }) {
     const sw = area.w - 32;
     content = (
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>
-        {stage(sw, explaining ? { selection: explainSelection, animate: false, marks: [] } : {})}
+        {stage(sw, explaining ? { selection: explainSelection, animate: false, marks: [], pastMarks: [] } : {})}
         <View style={{ marginTop: 18 }}>
           {explaining ? (
             <ExplainPanel page={page} onDraw={() => setExplaining(false)} />
