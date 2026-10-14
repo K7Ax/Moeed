@@ -11,6 +11,7 @@ import { PlayerScreen } from './src/player';
 import { ReviewScreen, initialReview } from './src/review';
 import { ImportScreen } from './src/import';
 import { Intro } from './src/intro';
+import { ConceptsRoot } from './src/concepts/gallery';
 
 const TITLES = { library: 'مُعيد', review: 'المراجعة', import: 'محاضرة جديدة', player: 'الشرح' };
 
@@ -70,7 +71,8 @@ export default function App() {
       <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'bottom', 'left', 'right']}>
         <View style={{ flex: 1, direction: 'rtl', backgroundColor: C.bg }}>
-          {body}
+          {/* For now the app opens on the design directions; the previous design is one of the entries. */}
+          <ConceptsRoot wide={wide} mode={mode} setMode={setMode} legacy={body} />
           {intro && <Intro onDone={() => setIntro(false)} />}
         </View>
       </SafeAreaView>

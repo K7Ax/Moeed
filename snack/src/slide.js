@@ -187,7 +187,7 @@ for (let i = 0; i < 7; i++) {
 }
 
 /** Our own sample slide: a sine-wave reading exercise. */
-const SineArt = React.memo(function SineArt() {
+export const SineArt = React.memo(function SineArt() {
   return (
     <G>
       <Rect x={0} y={0} width={800} height={600} fill="#FFFFFF" />

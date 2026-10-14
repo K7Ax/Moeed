@@ -26,7 +26,7 @@ export function toPath(pts) {
     d += (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
     if (i) len += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]);
   });
-  return { d, len };
+  return { d, len, pts };
 }
 
 /** A stroke drawn on up to `progress` (0…1). */
