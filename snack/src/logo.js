@@ -1,43 +1,43 @@
-// The mark: a flight of stairs with a play mark at the top: you climb a lecture step by step.
-// Geometry lives in one place so the launch intro climbs exactly the stairs the logo draws.
+// The mark: a stair that winds up into an arch, with play waiting in the doorway.
+// You climb a lecture step by step. The intro cuts this same image into its pieces, so
+// everything here is in the image's own 900×900 space.
 import React from 'react';
-import Svg, { Path, Polygon } from 'react-native-svg';
-import { isDark } from './theme';
+import { Image } from 'react-native';
+import { LOGO_URI } from './logoData';
+
+export { LOGO_URI };
 
 export const LOGO = {
-  box: 100,
-  // Each step's tread, left to right, bottom to top: [x0, x1, y].
-  treads: [
-    [10, 36, 74],
-    [36, 62, 52],
-    [62, 88, 30],
+  box: 900,
+  // Where the climber's feet land: the door's threshold, then each tread from the bottom
+  // step up, ending on the block where the stair turns into the arch.
+  spots: [
+    [712, 886],
+    [565, 762],
+    [285, 682],
+    [115, 553],
+    [262, 368],
   ],
-  base: 92,
-  play: [
-    [66, 6],
-    [66, 24],
-    [82, 15],
-  ],
+  // The play mark's middle; the climber leaps in here at the end.
+  playCenter: [588, 500],
+  // The image split into parts that can move on their own. Together they cover the mark.
+  pieces: {
+    bottom: '0,919 480,727 705,637 705,900 0,900',
+    middle: '0,703 480,559 480,727 0,919',
+    top: '0,481 480,481 480,559 0,703',
+    block: '0,0 355,0 355,481 0,481',
+    arch: '355,0 900,0 900,900 705,900 705,380 355,380',
+    play: '480,380 705,380 705,720 480,720',
+  },
 };
 
-export const logoColors = () => (isDark() ? { stairs: '#A9BCDD', play: '#4FC1B6' } : { stairs: '#1F3A5F', play: '#1E8C8C' });
-
-export function stairsPath() {
-  const { treads, base } = LOGO;
-  let d = `M${treads[0][0]} ${base} V${treads[0][2]}`;
-  treads.forEach(([, x1, y], i) => {
-    d += ` H${x1}`;
-    d += i < treads.length - 1 ? ` V${treads[i + 1][2]}` : ` V${base}`;
-  });
-  return d + ' Z';
-}
-
-export function LogoMark({ size = 28, stairs, play, style }) {
-  const c = logoColors();
+export function LogoMark({ size = 28, style }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100" style={style}>
-      <Path d={stairsPath()} fill={stairs || c.stairs} />
-      <Polygon points={LOGO.play.map((p) => p.join(',')).join(' ')} fill={play || c.play} />
-    </Svg>
+    <Image
+      source={{ uri: LOGO_URI }}
+      style={[{ width: size, height: size }, style]}
+      resizeMode="contain"
+      accessibilityLabel="شعار مُعيد"
+    />
   );
 }
