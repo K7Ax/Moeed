@@ -96,7 +96,17 @@ public enum Gallery {
                 .environment(\.colorScheme, scheme)
             return GalleryEntry(name: name, size: size, view: AnyView(view))
         }
+        // Home, take three (it opens on a question).
+        func ask(_ name: String, _ scheme: ColorScheme, size: CGSize = landscape) -> GalleryEntry {
+            let view = HomeAskView(now: friday)
+                .environment(AppRouter(route: .home))
+                .environment(\.colorScheme, scheme)
+            return GalleryEntry(name: name, size: size, view: AnyView(view))
+        }
         return [
+            ask("00-home-c-light", .light),
+            ask("00-home-c-dark", .dark),
+            ask("00-home-c-portrait", .light, size: portrait),
             note("00-home-b-light", .light),
             note("00-home-b-dark", .dark),
             note("00-home-b-portrait", .light, size: portrait),
