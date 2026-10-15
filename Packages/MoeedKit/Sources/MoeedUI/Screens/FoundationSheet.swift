@@ -15,7 +15,7 @@ public struct FoundationSheet: View {
                 typeRamp
                 figures
             }
-            .frame(width: 520, alignment: .leading)
+            .frame(width: 460, alignment: .leading)
             VStack(alignment: .leading, spacing: 30) {
                 palette
                 icons
@@ -84,7 +84,7 @@ public struct FoundationSheet: View {
                 ("تعبئة", Palette.fill), ("فاصل", Palette.sep),
                 ("الأساسي", Palette.accent), ("ناعم", Palette.accentSoft), ("الحبر", Palette.ink), ("تنبيه", Palette.alert),
             ]
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(84), spacing: 12), count: 6), alignment: .leading, spacing: 12) {
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(80), spacing: 12), count: 6), alignment: .leading, spacing: 12) {
                 ForEach(swatches.indices, id: \.self) { i in
                     VStack(alignment: .leading, spacing: 5) {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -118,7 +118,7 @@ public struct FoundationSheet: View {
     private var covers: some View {
         section("الأغلفة") {
             HStack(spacing: 12) {
-                ForEach(Cover.samples, id: \.self) { CoverArt($0, size: 96) }
+                ForEach(Cover.samples, id: \.self) { CoverArt($0, size: 84) }
             }
         }
     }
