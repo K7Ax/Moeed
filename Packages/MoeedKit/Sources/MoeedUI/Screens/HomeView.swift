@@ -21,7 +21,7 @@ public struct HomeView: View {
             let wide = geo.size.width >= 1000
             Group {
                 if wide {
-                    HStack(spacing: 0) {
+                    HStack(alignment: .top, spacing: 0) {
                         HomeSidebar(tab: tab, select: select)
                         main(width: min(1040, geo.size.width - 268) - 80, wide: true)
                     }
@@ -58,7 +58,10 @@ public struct HomeView: View {
             .frame(maxWidth: wide ? 1040 : .infinity)
             .frame(maxWidth: .infinity)
         if isSnapshot {
-            content.frame(maxHeight: .infinity, alignment: .top)
+            // A screenshot shows the top of the page; the rest hangs below the frame and is cut.
+            Color.clear
+                .overlay(alignment: .top) { content }
+                .clipped()
         } else {
             ScrollView {
                 content.background {
@@ -85,7 +88,7 @@ public struct HomeView: View {
             .rise(0.18)
             VStack(alignment: .leading, spacing: 0) {
                 SectionHead(Samples.course.name, action: "عرض الكل") { select(.library) }
-                Shelf(size: wide ? 164 : 136, open: play)
+                Shelf(size: wide ? 164 : 136, width: width, open: play)
             }
             .rise(0.26)
             VStack(alignment: .leading, spacing: 0) {
@@ -479,14 +482,16 @@ private struct Day: View {
 
 private struct Shelf: View {
     let size: CGFloat
+    let width: CGFloat
     let open: () -> Void
     @Environment(\.isSnapshot) private var isSnapshot
 
     var body: some View {
         if isSnapshot {
+            // The covers run on past the edge, as they would in the scrolling shelf.
             row
                 .fixedSize()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(width: width, alignment: .leading)
         } else {
             ScrollView(.horizontal, showsIndicators: false) { row }
                 .scrollClipDisabled()
