@@ -28,6 +28,8 @@ import { LECTURES, ORDINAL } from './mock';
 const WEB = Platform.OS === 'web';
 // The native driver can't run on the web; there Animated falls back to JS, which is fine.
 const ND = !WEB;
+// Bars over scrolling content frost what's behind them on the web, as the system's materials do.
+const BLUR = WEB ? { backdropFilter: 'blur(20px) saturate(1.6)' } : null;
 
 // iOS system colours, with the logo's teal as the only tint.
 const pal = () =>
@@ -173,7 +175,7 @@ function Press({ onPress, children, style, outer, scaleTo = 0.96, hoverBg, disab
           : undefined
       }
     >
-      <Animated.View style={[style, hover && hoverBg ? { backgroundColor: hoverBg } : null, { transform: [{ scale: s }] }]}>
+      <Animated.View style={[style, hover && hoverBg && !disabled ? { backgroundColor: hoverBg } : null, { transform: [{ scale: s }] }]}>
         {typeof children === 'function' ? children({ hover }) : children}
       </Animated.View>
     </Pressable>
@@ -843,7 +845,7 @@ function Preparing({ c, wide }) {
   const at = 2;
   const left = Math.max(1, Math.round((total - ready) * 0.18));
   const thumbs = wide ? 14 : 8;
-  const first = Math.max(1, ready - Math.floor(thumbs / 2) + 1);
+  const first = Math.max(1, Math.min(total - thumbs + 1, ready - Math.floor(thumbs / 2) + 1));
   return (
     <View style={{ backgroundColor: c.raised, borderRadius: 20, padding: 18 }}>
       <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
@@ -966,7 +968,7 @@ function Question({ text, c, size = 16 }) {
 
 function MiniPlayer({ c, onOpen, style }) {
   return (
-    <Press onPress={onOpen} scaleTo={0.985} style={[{ borderRadius: 18, backgroundColor: c.bar, borderWidth: hair, borderColor: c.sep, overflow: 'hidden', shadowColor: '#000', shadowOpacity: isDark() ? 0 : 0.14, shadowRadius: 24, shadowOffset: { width: 0, height: 8 } }, style]}>
+    <Press onPress={onOpen} scaleTo={0.985} style={[{ borderRadius: 18, backgroundColor: c.bar, borderWidth: hair, borderColor: c.sep, overflow: 'hidden', shadowColor: '#000', shadowOpacity: isDark() ? 0 : 0.14, shadowRadius: 24, shadowOffset: { width: 0, height: 8 } }, BLUR, style]}>
       {({ hover }) => (
         <>
           <View style={{ height: 2, backgroundColor: c.fill }}>
@@ -1116,7 +1118,7 @@ function Home({ wide, onOpen }) {
     </>
   );
   const bar = (
-    <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50, backgroundColor: c.bar, borderBottomWidth: hair, borderBottomColor: c.sep, opacity: compact, alignItems: 'center', justifyContent: 'center' }}>
+    <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: 0, right: 0, height: 50, backgroundColor: c.bar, borderBottomWidth: hair, borderBottomColor: c.sep, opacity: compact, alignItems: 'center', justifyContent: 'center' }, BLUR]}>
       <T size={17} w="600" color={c.text} align="center">
         الرئيسية
       </T>
