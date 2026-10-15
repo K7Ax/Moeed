@@ -154,10 +154,10 @@ private struct Lyrics: View {
 
     var body: some View {
         if isSnapshot {
-            // No ScrollView in a render: show the last two steps above the current one.
+            // No ScrollView in a render: show a step or two above the current one (one if it's a question).
             Color.clear
                 .overlay(alignment: .top) {
-                    column(from: max(0, model.stepIndex - 2))
+                    column(from: max(0, model.stepIndex - (model.step.ask == nil ? 2 : 1)))
                         .padding(.top, padTop)
                 }
                 .clipped()
