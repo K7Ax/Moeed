@@ -17,6 +17,8 @@ public final class PlayerModel {
     public private(set) var speed: Double = 1
     public private(set) var picked: String?
     public private(set) var answerShown = false
+    /// Goes up every time a step (re)starts, so the lines being said start lighting from the top.
+    public private(set) var playCount = 0
 
     /// A settled model shows a step fully drawn and never starts playback (previews, snapshots).
     @ObservationIgnored public private(set) var isSettled = false
@@ -51,6 +53,24 @@ public final class PlayerModel {
 
     public var isAnswered: Bool { picked != nil || answerShown }
     public var pickedRight: Bool { picked != nil && picked == step.ask?.answerID }
+
+    /// Where the answer to the current question sits on the slide: the point the step after it explains.
+    public var answerAnchor: SlidePoint? {
+        guard step.ask != nil, page.steps.indices.contains(stepIndex + 1) else { return nil }
+        return page.steps[stepIndex + 1].placement?.anchor
+    }
+
+    /// Roughly how long the rest of the slide takes to say, from here on, in whole minutes.
+    public var minutesLeft: Int {
+        var ms = 0.0
+        for (k, s) in page.steps[stepIndex...].enumerated() {
+            let lines = s.ask.map { [$0.question, $0.why] } ?? s.caption.map(\.text)
+            for (j, line) in lines.enumerated() where !(k == 0 && s.ask == nil && j < revealed) {
+                ms += Double(ReadingTime.milliseconds(for: line)) / speed + 1400
+            }
+        }
+        return max(1, Int((ms / 60000).rounded()))
+    }
 
     public var speedLabel: String {
         speed == 1 ? "1×" : String(format: "%g×", speed)
@@ -99,6 +119,7 @@ public final class PlayerModel {
         withTransaction(reset) {
             drawn = false
             revealed = 0
+            playCount += 1
         }
         let phrases = step.caption
         let inkDuration = InkTiming.total(for: step.marks.count)

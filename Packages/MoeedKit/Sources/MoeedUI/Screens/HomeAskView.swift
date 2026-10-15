@@ -9,19 +9,34 @@ public struct HomeAskView: View {
     @Environment(\.isSnapshot) private var isSnapshot
     @State private var tab: HomeTab = .home
     @State private var draft = ""
+    @State private var sidebar: Bool
     private let now: Date
 
-    public init(now: Date = Date()) {
+    /// `sidebar: false` opens with the sidebar folded away and the page full screen.
+    public init(now: Date = Date(), sidebar: Bool = true) {
         self.now = now
+        _sidebar = State(initialValue: sidebar)
     }
 
     public var body: some View {
         GeometryReader { geo in
             let wide = geo.size.width >= 1000
             if wide {
+                let side: CGFloat = sidebar ? HomeSidebar.width : 0
                 HStack(alignment: .top, spacing: 0) {
-                    HomeSidebar(tab: tab, select: select)
-                    page(column: min(720, geo.size.width - HomeSidebar.width - 80), height: geo.size.height, wide: true)
+                    if sidebar {
+                        HomeSidebar(tab: tab, select: select, collapse: toggleSidebar)
+                            .transition(.move(edge: .leading))
+                    }
+                    page(column: min(720, geo.size.width - side - 80), height: geo.size.height, wide: true)
+                }
+                .overlay(alignment: .topLeading) {
+                    if !sidebar {
+                        SidebarToggle(action: toggleSidebar)
+                            .padding(.top, 18)
+                            .padding(.horizontal, 18)
+                            .transition(.opacity)
+                    }
                 }
             } else {
                 VStack(spacing: 0) {
@@ -258,6 +273,10 @@ public struct HomeAskView: View {
 
     private func play() {
         router.route = .player
+    }
+
+    private func toggleSidebar() {
+        withAnimation(.smooth(duration: 0.35)) { sidebar.toggle() }
     }
 
     private func select(_ next: HomeTab) {

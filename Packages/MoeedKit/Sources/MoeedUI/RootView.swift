@@ -34,22 +34,34 @@ public struct RootView: View {
         Group {
             switch router.route {
             case .home:
-                // «الأصلي» follows the system's light and dark.
-                HomeView(now: now ?? Date())
+                // «الأصلي» follows the system's light and dark. Home opens on a question.
+                HomeAskView(now: now ?? Date())
                     .tint(Palette.accent)
             case .library:
                 LibraryView().paper()
             case .review:
                 ReviewView().paper()
             case .player:
-                PlayerView(model: player, explaining: startExplaining).paper()
+                // A sheet rising over home, as Music's player does.
+                TutorPlayerView(model: player)
+                    .transition(.move(edge: .bottom))
             case .importing:
                 ImportView().paper()
             }
         }
+        .animation(.smooth(duration: 0.45), value: router.route)
         .environment(router)
         .environment(\.locale, Locale(identifier: "ar@numbers=latn"))
-        .preferredColorScheme(router.route == .home ? nil : .light)
+        .preferredColorScheme(scheme)
+    }
+
+    /// Home follows the system, the player is always dark, and the paper screens are still light.
+    private var scheme: ColorScheme? {
+        switch router.route {
+        case .home: nil
+        case .player: .dark
+        default: .light
+        }
     }
 }
 
@@ -89,45 +101,41 @@ public enum Gallery {
         func home(_ name: String, _ scheme: ColorScheme, size: CGSize = landscape) -> GalleryEntry {
             GalleryEntry(name: name, size: size, view: AnyView(RootView(route: .home, now: friday).environment(\.colorScheme, scheme)))
         }
-        // Home, take two (the tutor's note), beside the first for comparison.
-        func note(_ name: String, _ scheme: ColorScheme, size: CGSize = landscape) -> GalleryEntry {
-            let view = HomeNoteView(now: friday)
+        // Home with the sidebar folded away, full screen.
+        func full(_ name: String, _ scheme: ColorScheme) -> GalleryEntry {
+            let view = HomeAskView(now: friday, sidebar: false)
                 .environment(AppRouter(route: .home))
                 .environment(\.colorScheme, scheme)
-            return GalleryEntry(name: name, size: size, view: AnyView(view))
+            return GalleryEntry(name: name, size: landscape, view: AnyView(view))
         }
-        // Home, take three (it opens on a question).
-        func ask(_ name: String, _ scheme: ColorScheme, size: CGSize = landscape) -> GalleryEntry {
-            let view = HomeAskView(now: friday)
-                .environment(AppRouter(route: .home))
-                .environment(\.colorScheme, scheme)
-            return GalleryEntry(name: name, size: size, view: AnyView(view))
+        // The two homes not taken, kept for reference.
+        func alternative<V: View>(_ name: String, _ view: V) -> GalleryEntry {
+            GalleryEntry(name: name, size: landscape, view: AnyView(view.environment(AppRouter(route: .home)).environment(\.colorScheme, .light)))
+        }
+        func player(_ name: String, _ model: PlayerModel, size: CGSize = landscape) -> GalleryEntry {
+            entry(name, RootView(route: .player, player: model), size: size)
         }
         return [
-            ask("00-home-c-light", .light),
-            ask("00-home-c-dark", .dark),
-            ask("00-home-c-portrait", .light, size: portrait),
-            note("00-home-b-light", .light),
-            note("00-home-b-dark", .dark),
-            note("00-home-b-portrait", .light, size: portrait),
-            note("00-home-b-full", .light, size: CGSize(width: 1180, height: 1500)),
-            foundation(.light),
-            foundation(.dark),
             home("00-home-light", .light),
             home("00-home-dark", .dark),
             home("00-home-portrait", .light, size: portrait),
-            home("00-home-full", .light, size: CGSize(width: 1180, height: 2160)),
-            home("00-home-full-dark", .dark, size: CGSize(width: 1180, height: 2160)),
+            full("00-home-fullscreen", .light),
+            full("00-home-fullscreen-dark", .dark),
+            player("02-player", PlayerModel.settled(page, step: 4, revealed: 1)),
+            player("03-ask", PlayerModel.settled(page, step: 3)),
+            player("04-ask-wrong", PlayerModel.settled(page, step: 3, picked: "zero")),
+            player("05-ask-right", PlayerModel.settled(page, step: 3, picked: "neg")),
+            player("06-player-later", PlayerModel.settled(page, step: 7, revealed: 1)),
+            player("09-player-portrait", PlayerModel.settled(page, step: 4, revealed: 1), size: portrait),
+            player("09-ask-portrait", PlayerModel.settled(page, step: 3, picked: "zero"), size: portrait),
+            player("10-summary-spotlight", PlayerModel.settled(page, step: 8)),
+            foundation(.light),
+            foundation(.dark),
+            alternative("90-home-a", HomeView(now: friday)),
+            alternative("91-home-b", HomeNoteView(now: friday)),
             entry("01-library", RootView(route: .library)),
-            entry("02-player", RootView(route: .player, player: PlayerModel.settled(page, step: 4, revealed: 1))),
-            entry("03-ask", RootView(route: .player, player: PlayerModel.settled(page, step: 3))),
-            entry("04-ask-wrong", RootView(route: .player, player: PlayerModel.settled(page, step: 3, picked: "zero"))),
-            entry("05-ask-right", RootView(route: .player, player: PlayerModel.settled(page, step: 3, picked: "neg"))),
-            entry("06-explain", RootView(route: .player, player: PlayerModel.settled(page, step: 7), startExplaining: true)),
             entry("07-review", RootView(route: .review)),
             entry("08-import", RootView(route: .importing)),
-            entry("09-player-portrait", RootView(route: .player, player: PlayerModel.settled(page, step: 4)), size: portrait),
-            entry("10-summary-spotlight", RootView(route: .player, player: PlayerModel.settled(page, step: 8))),
         ]
     }
 }

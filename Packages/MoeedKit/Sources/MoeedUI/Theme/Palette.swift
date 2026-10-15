@@ -69,6 +69,9 @@ public enum Stage {
     /// The tutor's pen on the printed slide, and the student's when they ask.
     public static let pen = Color(hex: 0x0A8F86)
     public static let askPen = Color(hex: 0xE8590C)
+    /// A question waiting in the player: a warm dot and its label, never red.
+    public static let askDot = Color(hex: 0xFF9F5A)
+    public static let askText = Color(hex: 0xFFB98A)
     /// Slow light drifting behind the artwork.
     public static let ambient: [Color] = ([0x14776C, 0x0E3F5C, 0x2BA889, 0x0B5A55] as [UInt32]).map { Color(hex: $0) }
 }

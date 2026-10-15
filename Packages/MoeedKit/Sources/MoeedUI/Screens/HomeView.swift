@@ -883,6 +883,8 @@ enum HomeTab: CaseIterable {
 struct HomeSidebar: View {
     let tab: HomeTab
     let select: (HomeTab) -> Void
+    /// When set, a button beside the name folds the sidebar away and the page goes full screen.
+    var collapse: (() -> Void)?
 
     /// Narrow on purpose: a list of five words doesn't need a third of the screen.
     static let width: CGFloat = 220
@@ -899,6 +901,10 @@ struct HomeSidebar: View {
                 Text("مُعيد")
                     .font(Typeface.plex(20, .bold))
                     .foregroundStyle(Palette.text)
+                Spacer(minLength: 0)
+                if let collapse {
+                    SidebarToggle(action: collapse)
+                }
             }
             .padding(.horizontal, 8)
             .padding(.bottom, 18)
@@ -965,6 +971,22 @@ struct HomeSidebar: View {
             .background(on ? Palette.accentSoft : Adaptive.fixed(.clear), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
         }
         .buttonStyle(.press(0.98, hover: on ? nil : Palette.hover, radius: 9))
+    }
+}
+
+/// The sidebar's own button, as iPadOS puts it: folds it away, and brings it back from the page's corner.
+struct SidebarToggle: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "sidebar.leading")
+                .font(.system(size: 17, weight: .regular))
+                .foregroundStyle(Palette.text2)
+                .frame(width: 36, height: 36)
+        }
+        .buttonStyle(.press(0.9, hover: Palette.hover, radius: 9))
+        .accessibilityLabel("القائمة الجانبية")
     }
 }
 
