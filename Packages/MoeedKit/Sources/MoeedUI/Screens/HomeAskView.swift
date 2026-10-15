@@ -21,7 +21,7 @@ public struct HomeAskView: View {
             if wide {
                 HStack(alignment: .top, spacing: 0) {
                     HomeSidebar(tab: tab, select: select)
-                    page(column: min(720, geo.size.width - 268 - 80), height: geo.size.height, wide: true)
+                    page(column: min(720, geo.size.width - HomeSidebar.width - 80), height: geo.size.height, wide: true)
                 }
             } else {
                 VStack(spacing: 0) {

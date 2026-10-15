@@ -23,7 +23,7 @@ public struct HomeView: View {
                 if wide {
                     HStack(alignment: .top, spacing: 0) {
                         HomeSidebar(tab: tab, select: select)
-                        main(width: min(1040, geo.size.width - 268) - 80, wide: true)
+                        main(width: min(1040, geo.size.width - HomeSidebar.width) - 80, wide: true)
                     }
                 } else {
                     VStack(spacing: 0) {
@@ -884,6 +884,9 @@ struct HomeSidebar: View {
     let tab: HomeTab
     let select: (HomeTab) -> Void
 
+    /// Narrow on purpose: a list of five words doesn't need a third of the screen.
+    static let width: CGFloat = 220
+
     private static let courses: [(code: String, name: String, color: Color, done: Int, all: Int)] = [
         ("٢٠٧", "الدوائر الكهربائية", Cover.samples[4].color, 4, 12),
         ("٢١١", "الإلكترونيات", Cover.samples[0].color, 0, 10),
@@ -892,33 +895,33 @@ struct HomeSidebar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
-                BrandLogo(size: 32)
+                BrandLogo(size: 28)
                 Text("مُعيد")
-                    .font(Typeface.plex(22, .bold))
+                    .font(Typeface.plex(20, .bold))
                     .foregroundStyle(Palette.text)
             }
             .padding(.horizontal, 8)
-            .padding(.bottom, 22)
+            .padding(.bottom, 18)
             ForEach(HomeTab.allCases, id: \.self) { item in
                 navRow(item)
             }
             Text("المقررات")
-                .font(Typeface.plex(13, .semibold))
+                .font(Typeface.plex(12, .semibold))
                 .foregroundStyle(Palette.text2)
-                .padding(.top, 26)
-                .padding(.bottom, 6)
-                .padding(.horizontal, 10)
+                .padding(.top, 22)
+                .padding(.bottom, 4)
+                .padding(.horizontal, 8)
             ForEach(Self.courses.indices, id: \.self) { i in
                 let course = Self.courses[i]
                 Button {} label: {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 10) {
                         Text(verbatim: course.code)
-                            .font(Typeface.plex(9, .bold))
+                            .font(Typeface.plex(8, .bold))
                             .foregroundStyle(.white)
-                            .frame(width: 24, height: 24)
+                            .frame(width: 22, height: 22)
                             .background(course.color, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                         Text(verbatim: course.name)
-                            .font(Typeface.plex(16))
+                            .font(Typeface.plex(15))
                             .foregroundStyle(Palette.text)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -926,16 +929,16 @@ struct HomeSidebar: View {
                             .font(Typeface.plex(12))
                             .foregroundStyle(Palette.text3)
                     }
-                    .padding(.horizontal, 10)
-                    .frame(height: 44)
+                    .padding(.horizontal, 8)
+                    .frame(height: 38)
                 }
-                .buttonStyle(.press(0.98, hover: Palette.hover, radius: 11))
+                .buttonStyle(.press(0.98, hover: Palette.hover, radius: 9))
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 22)
-        .frame(width: 268)
+        .padding(.horizontal, 10)
+        .padding(.top, 20)
+        .frame(width: Self.width)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(Palette.sidebar)
         .overlay(alignment: .trailing) { Rectangle().fill(Palette.sep).frame(width: 0.5) }
@@ -944,24 +947,24 @@ struct HomeSidebar: View {
     private func navRow(_ item: HomeTab) -> some View {
         let on = item == tab
         return Button { select(item) } label: {
-            HStack(spacing: 12) {
-                NibIcon(item.icon, size: 22, weight: on ? 2.7 : 2.2, active: on)
+            HStack(spacing: 10) {
+                NibIcon(item.icon, size: 20, weight: on ? 2.6 : 2.1, active: on)
                     .foregroundStyle(Palette.accent)
                 Text(verbatim: item.label)
-                    .font(Typeface.plex(17, on ? .semibold : .regular))
+                    .font(Typeface.plex(16, on ? .semibold : .regular))
                     .foregroundStyle(on ? Palette.accent : Palette.text)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if let badge = item.badge {
                     Text(verbatim: badge.eastern)
-                        .font(Typeface.plex(14, .medium))
+                        .font(Typeface.plex(13, .medium))
                         .foregroundStyle(Palette.text2)
                 }
             }
-            .padding(.horizontal, 10)
-            .frame(height: 44)
-            .background(on ? Palette.accentSoft : Adaptive.fixed(.clear), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+            .padding(.horizontal, 8)
+            .frame(height: 38)
+            .background(on ? Palette.accentSoft : Adaptive.fixed(.clear), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
         }
-        .buttonStyle(.press(0.98, hover: on ? nil : Palette.hover, radius: 11))
+        .buttonStyle(.press(0.98, hover: on ? nil : Palette.hover, radius: 9))
     }
 }
 

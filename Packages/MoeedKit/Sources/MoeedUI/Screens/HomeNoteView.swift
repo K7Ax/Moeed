@@ -21,7 +21,7 @@ public struct HomeNoteView: View {
             if wide {
                 HStack(alignment: .top, spacing: 0) {
                     HomeSidebar(tab: tab, select: select)
-                    page(column: min(900, geo.size.width - 268 - 80), wide: true)
+                    page(column: min(900, geo.size.width - HomeSidebar.width - 80), wide: true)
                 }
             } else {
                 VStack(spacing: 0) {
