@@ -155,8 +155,10 @@ struct CoverMotif: Shape {
     var number: Int
 
     func path(in rect: CGRect) -> Path {
-        let s = min(rect.width, rect.height) / 100
-        func p(_ x: Double, _ y: Double) -> CGPoint { CGPoint(x: rect.minX + x * s, y: rect.minY + y * s) }
+        let s: Double = Double(min(rect.width, rect.height)) / 100
+        let ox: Double = Double(rect.minX)
+        let oy: Double = Double(rect.minY)
+        func p(_ x: Double, _ y: Double) -> CGPoint { CGPoint(x: ox + x * s, y: oy + y * s) }
         var path = Path()
         func line(_ points: [(Double, Double)]) {
             guard let first = points.first else { return }
@@ -178,14 +180,20 @@ struct CoverMotif: Shape {
             line([(30, 33), (24, 32), (26, 26)])
             line([(70, 33), (76, 32), (74, 26)])
             line([(47, 76), (50, 82), (53, 76)])
-            path.addEllipse(in: CGRect(origin: p(45, 45), size: CGSize(width: 10 * s, height: 10 * s)))
+            path.addEllipse(in: CGRect(origin: p(45, 45), size: CGSize(width: 10.0 * s, height: 10.0 * s)))
         case 4: // a capacitor
             line([(6, 50), (42, 50)])
             line([(42, 28), (42, 72)])
             line([(58, 28), (58, 72)])
             line([(58, 50), (94, 50)])
         case 5: // a sine wave
-            line((0...45).map { i in (4 + Double(i) * 2, 50 - 24 * sin(Double(i) / 45 * Double.pi * 3)) })
+            let wave: [(Double, Double)] = (0...45).map { (i: Int) -> (Double, Double) in
+                let t: Double = Double(i)
+                let x: Double = 4 + t * 2
+                let y: Double = 50 - 24 * sin(t / 45 * Double.pi * 3)
+                return (x, y)
+            }
+            line(wave)
         default:
             break
         }

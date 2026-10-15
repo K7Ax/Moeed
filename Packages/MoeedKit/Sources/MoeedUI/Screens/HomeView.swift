@@ -696,23 +696,27 @@ private struct Thumb: View {
         let n = Double(number)
         let ready = state == .ready
         return Canvas { context, size in
-            let s = size.width / 40
+            let s: Double = Double(size.width) / 40
             func r(_ x: Double, _ y: Double, _ w: Double, _ h: Double) -> Path {
-                Path(roundedRect: CGRect(x: x * s, y: y * s, width: w * s, height: h * s), cornerRadius: h * s / 2)
+                let rect = CGRect(x: x * s, y: y * s, width: w * s, height: h * s)
+                let radius: Double = h * s / 2
+                return Path(roundedRect: rect, cornerRadius: radius)
             }
             context.fill(r(5, 5, 18, 2.4), with: .color(Color(hex: 0xC9CDD2)))
             context.fill(r(5, 10, 26, 1.6), with: .color(Color(hex: 0xE1E4E8)))
             context.fill(r(5, 14, 22, 1.6), with: .color(Color(hex: 0xE1E4E8)))
             guard ready else { return }
-            let y0 = 22 + n.truncatingRemainder(dividingBy: 3)
-            let cy = 17 + n.truncatingRemainder(dividingBy: 4)
-            let y1 = 22 - n.truncatingRemainder(dividingBy: 2)
-            let y2 = 20 + n.truncatingRemainder(dividingBy: 3)
+            let y0: Double = 22 + n.truncatingRemainder(dividingBy: 3)
+            let cy: Double = 17 + n.truncatingRemainder(dividingBy: 4)
+            let y1: Double = 22 - n.truncatingRemainder(dividingBy: 2)
+            let y2: Double = 20 + n.truncatingRemainder(dividingBy: 3)
+            let cy2: Double = 2 * y1 - cy
+            let lw: Double = 1.6 * s
             var pen = Path()
             pen.move(to: CGPoint(x: 6 * s, y: y0 * s))
             pen.addQuadCurve(to: CGPoint(x: 20 * s, y: y1 * s), control: CGPoint(x: 14 * s, y: cy * s))
-            pen.addQuadCurve(to: CGPoint(x: 34 * s, y: y2 * s), control: CGPoint(x: 26 * s, y: (2 * y1 - cy) * s))
-            context.stroke(pen, with: .color(Stage.pen), style: StrokeStyle(lineWidth: 1.6 * s, lineCap: .round))
+            pen.addQuadCurve(to: CGPoint(x: 34 * s, y: y2 * s), control: CGPoint(x: 26 * s, y: cy2 * s))
+            context.stroke(pen, with: .color(Stage.pen), style: StrokeStyle(lineWidth: lw, lineCap: .round))
         }
         .environment(\.layoutDirection, .leftToRight)
     }
@@ -794,9 +798,10 @@ private struct MiniPlayer: View {
         Button(action: open) {
             VStack(spacing: 0) {
                 GeometryReader { geo in
+                    let played: Double = (Double(resume.step) - 0.5) / Double(resume.stepCount)
                     HStack(spacing: 0) {
                         Rectangle().fill(Palette.accent)
-                            .frame(width: geo.size.width * (Double(resume.step) - 0.5) / Double(resume.stepCount))
+                            .frame(width: geo.size.width * played)
                         Spacer(minLength: 0)
                     }
                 }

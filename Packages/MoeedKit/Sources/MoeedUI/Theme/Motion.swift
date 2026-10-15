@@ -373,23 +373,6 @@ struct InkOn<S: Shape>: View {
     }
 }
 
-/// The tutor's loop round something: an ellipse that overshoots where the pen closes it.
-struct InkEllipse: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let samples = 48
-        for i in 0...samples {
-            let f = Double(i) / Double(samples)
-            let angle = -2.3 + f * (2 * Double.pi + 0.5)
-            let wobble = 1 + 0.04 * sin(f * 9) + 0.07 * f
-            let x = Double(rect.midX) + Double(rect.width) / 2 * wobble * cos(angle)
-            let y = Double(rect.midY) + Double(rect.height) / 2 * wobble * sin(angle)
-            if i == 0 { path.move(to: CGPoint(x: x, y: y)) } else { path.addLine(to: CGPoint(x: x, y: y)) }
-        }
-        return path
-    }
-}
-
 /// A hand-written tick.
 struct InkTickShape: Shape {
     func path(in rect: CGRect) -> Path {
