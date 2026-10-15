@@ -98,8 +98,8 @@ enum NibGeometry {
                 seg(12, 6.8, 12, 19.4),
             ]
         case .review:
-            let end = 4.75
-            let tip = CGPoint(x: 12 + 7.8 * cos(end), y: 12.4 + 7.8 * sin(end))
+            let end: Double = 4.75
+            let tip = CGPoint(x: 12 + 7.8 * cos(end) as Double, y: 12.4 + 7.8 * sin(end) as Double)
             return [
                 arc(12, 12.4, 7.8, -0.35, end),
                 arrowHead(tip, CGVector(dx: -sin(end), dy: cos(end))),
@@ -113,9 +113,11 @@ enum NibGeometry {
     /// Slant and a touch of hand wobble, then the two edges of the nib's track, joined into one outline.
     static func outline(_ raw: [CGPoint], weight: CGFloat, seed: Double) -> [CGPoint] {
         let pts: [(x: Double, y: Double)] = raw.enumerated().map { i, p in
-            let d = Double(i)
-            let x = Double(p.x), y = Double(p.y)
-            return (x - (y - 12) * slant + 0.16 * sin(d * 1.3 + seed), y + 0.16 * cos(d * 1.1 + seed * 2))
+            let d: Double = Double(i)
+            let x: Double = Double(p.x), y: Double = Double(p.y)
+            let sx: Double = x - (y - 12) * slant + 0.16 * sin(d * 1.3 + seed)
+            let sy: Double = y + 0.16 * cos(d * 1.1 + seed * 2)
+            return (sx, sy)
         }
         let n = pts.count
         let w = Double(weight)
@@ -132,7 +134,9 @@ enum NibGeometry {
             let f = n > 1 ? Double(i) / Double(n - 1) : 0.5
             let taper = sqrt(sin(Double.pi * (0.03 + 0.94 * f)))
             let across = abs(sin(atan2(ty, tx) - nibAngle))
-            let hw = w / 2 * (0.14 + 0.86 * taper) * (0.62 + 0.38 * across)
+            let body: Double = 0.14 + 0.86 * taper
+            let nib: Double = 0.62 + 0.38 * across
+            let hw: Double = w / 2 * body * nib
             left.append(CGPoint(x: pts[i].x - ty * hw, y: pts[i].y + tx * hw))
             right.append(CGPoint(x: pts[i].x + ty * hw, y: pts[i].y - tx * hw))
         }
@@ -140,24 +144,31 @@ enum NibGeometry {
     }
 
     static func seg(_ x0: Double, _ y0: Double, _ x1: Double, _ y1: Double, k: Int = 12) -> [CGPoint] {
-        (0...k).map { i in
-            let f = Double(i) / Double(k)
-            return CGPoint(x: x0 + (x1 - x0) * f, y: y0 + (y1 - y0) * f)
+        (0...k).map { (i: Int) -> CGPoint in
+            let f: Double = Double(i) / Double(k)
+            let x: Double = x0 + (x1 - x0) * f
+            let y: Double = y0 + (y1 - y0) * f
+            return CGPoint(x: x, y: y)
         }
     }
 
     static func quad(_ ax: Double, _ ay: Double, _ cx: Double, _ cy: Double, _ bx: Double, _ by: Double, k: Int = 16) -> [CGPoint] {
-        (0...k).map { i in
-            let f = Double(i) / Double(k)
-            let u = 1 - f
-            return CGPoint(x: u * u * ax + 2 * u * f * cx + f * f * bx, y: u * u * ay + 2 * u * f * cy + f * f * by)
+        (0...k).map { (i: Int) -> CGPoint in
+            let f: Double = Double(i) / Double(k)
+            let u: Double = 1 - f
+            let wa: Double = u * u, wc: Double = 2 * u * f, wb: Double = f * f
+            let x: Double = wa * ax + wc * cx + wb * bx
+            let y: Double = wa * ay + wc * cy + wb * by
+            return CGPoint(x: x, y: y)
         }
     }
 
     static func arc(_ cx: Double, _ cy: Double, _ r: Double, _ a0: Double, _ a1: Double, k: Int = 34) -> [CGPoint] {
-        (0...k).map { i in
-            let a = a0 + (a1 - a0) * Double(i) / Double(k)
-            return CGPoint(x: cx + r * cos(a), y: cy + r * sin(a))
+        (0...k).map { (i: Int) -> CGPoint in
+            let a: Double = a0 + (a1 - a0) * Double(i) / Double(k)
+            let x: Double = cx + r * cos(a)
+            let y: Double = cy + r * sin(a)
+            return CGPoint(x: x, y: y)
         }
     }
 
