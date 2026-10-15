@@ -117,7 +117,7 @@ public struct HomeNoteView: View {
     private func artwork(width: CGFloat) -> some View {
         Button(action: play) {
             LiveArtwork()
-                .frame(width: width)
+                .frame(width: width, height: (width * 0.75).rounded())
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.sep, lineWidth: 0.5))
         }

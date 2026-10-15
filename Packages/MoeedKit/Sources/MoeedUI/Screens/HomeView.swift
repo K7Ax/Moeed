@@ -885,7 +885,7 @@ struct HomeSidebar: View {
     let select: (HomeTab) -> Void
 
     private static let courses: [(code: String, name: String, color: Color, done: Int, all: Int)] = [
-        ("٢٠٧", "الدوائر الكهربائية", Cover.samples[4].color, 5, 12),
+        ("٢٠٧", "الدوائر الكهربائية", Cover.samples[4].color, 4, 12),
         ("٢١١", "الإلكترونيات", Cover.samples[0].color, 0, 10),
     ]
 
