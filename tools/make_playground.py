@@ -1,7 +1,7 @@
 """Package Moeed as a Swift Playgrounds app (Moeed.swiftpm) so it can run on an iPad without a Mac.
 
 Usage: python tools/make_playground.py
-Reads:  Packages/MoeedKit/Sources/{MoeedCore,MoeedUI}, App/, Design/logo.png (optional)
+Reads:  Packages/MoeedKit/Sources/{MoeedCore,MoeedUI} (with MoeedUI's bundled fonts), App/, Design/logo.png (optional)
 Writes: App/Assets.xcassets (when a logo exists), Build/Moeed.swiftpm, Build/Moeed.swiftpm.zip
 
 Playgrounds builds one module, so the package's sources are copied side by side
@@ -58,7 +58,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: "."
+            path: ".",
+            resources: [
+                .copy("Resources/Fonts")
+            ]
         )
     ]
 )
@@ -133,6 +136,9 @@ def main() -> int:
             text = MODULE_IMPORT.sub("", file.read_text(encoding="utf-8"))
             target.write_text(text, encoding="utf-8", newline="\n")
             count += 1
+
+    # The bundled faces, at the same path MoeedUI's Package.swift copies them from.
+    shutil.copytree(SOURCES / "MoeedUI" / "Resources" / "Fonts", OUT / "Resources" / "Fonts")
 
     if has_logo:
         shutil.copytree(ROOT / "App" / "Assets.xcassets", OUT / "Assets.xcassets")

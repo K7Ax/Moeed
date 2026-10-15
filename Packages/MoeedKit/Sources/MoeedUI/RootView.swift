@@ -42,7 +42,7 @@ public struct RootView: View {
             }
         }
         .environment(router)
-        .environment(\.locale, Locale(identifier: "ar@numbers=latn"))
+        .environment(\.locale, Locale(identifier: "ar"))
         .environment(\.colorScheme, .light)
         .preferredColorScheme(.light)
         .tint(Theme.red)
@@ -66,7 +66,16 @@ public enum Gallery {
         func entry(_ name: String, _ view: RootView, size: CGSize = landscape) -> GalleryEntry {
             GalleryEntry(name: name, size: size, view: AnyView(view))
         }
+        func foundation(_ scheme: ColorScheme) -> GalleryEntry {
+            GalleryEntry(
+                name: "00-foundation-\(scheme == .dark ? "dark" : "light")",
+                size: landscape,
+                view: AnyView(FoundationSheet().environment(\.colorScheme, scheme))
+            )
+        }
         return [
+            foundation(.light),
+            foundation(.dark),
             entry("01-library", RootView(route: .library)),
             entry("02-player", RootView(route: .player, player: PlayerModel.settled(page, step: 4, revealed: 1))),
             entry("03-ask", RootView(route: .player, player: PlayerModel.settled(page, step: 3))),

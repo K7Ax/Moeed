@@ -1,3 +1,4 @@
+import MoeedCore
 import SwiftUI
 
 /// Design tokens: «الملزمة», the photocopied lecture packet a معيد goes through with you.
@@ -39,12 +40,12 @@ enum Theme {
 
     /// One family for Arabic: hierarchy is weight and size, never a second face.
     static func text(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight)
+        Typeface.plex(size, weight)
     }
 
-    /// Latin, codes and figures are set the way a paper sets them: in a serif.
+    /// Latin titles are set the way a paper sets them: in a serif.
     static func serif(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .serif)
+        Typeface.serif(size, weight)
     }
 
     /// The tutor's handwriting for ink labels.
@@ -253,10 +254,11 @@ enum RichText {
     /// Wraps a run in a left-to-right isolate so Latin and math keep their order inside Arabic.
     static func ltr(_ text: String) -> String { "\u{2066}" + text + "\u{2069}" }
 
-    /// Renders backtick spans as bold, left-to-right runs: "عند `0.3 s` احنا في القاع".
+    /// Renders backtick spans as bold, left-to-right runs: "عند `0.3 s` احنا في القاع",
+    /// with every figure in Eastern Arabic, math included: "عند ٠٫٣ s".
     static func attributed(_ raw: String) -> AttributedString {
         var result = AttributedString()
-        for (index, part) in raw.split(separator: "`", omittingEmptySubsequences: false).enumerated() {
+        for (index, part) in raw.eastern.split(separator: "`", omittingEmptySubsequences: false).enumerated() {
             if index % 2 == 1 {
                 var run = AttributedString(ltr(String(part)))
                 run.inlinePresentationIntent = .stronglyEmphasized
