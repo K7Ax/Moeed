@@ -310,9 +310,11 @@ private struct NowCard: View {
 }
 
 /// The slide with its earlier ink kept, and the current step's ink writing itself again and again.
-private struct LiveArtwork: View {
+struct LiveArtwork: View {
     @Environment(\.motionOff) private var motionOff
     @State private var drawn = false
+
+    init() {}
 
     private static let page = Samples.sinePage
     static let pastInk: [InkMark] = page.steps.prefix(4).filter { $0.ask == nil }.flatMap(\.marks)
@@ -878,7 +880,7 @@ enum HomeTab: CaseIterable {
     var badge: Int? { self == .review ? Samples.reviewItems.count + 2 : nil }
 }
 
-private struct HomeSidebar: View {
+struct HomeSidebar: View {
     let tab: HomeTab
     let select: (HomeTab) -> Void
 
@@ -963,7 +965,7 @@ private struct HomeSidebar: View {
     }
 }
 
-private struct HomeTabBar: View {
+struct HomeTabBar: View {
     let tab: HomeTab
     let select: (HomeTab) -> Void
 

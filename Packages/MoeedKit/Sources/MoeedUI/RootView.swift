@@ -89,7 +89,18 @@ public enum Gallery {
         func home(_ name: String, _ scheme: ColorScheme, size: CGSize = landscape) -> GalleryEntry {
             GalleryEntry(name: name, size: size, view: AnyView(RootView(route: .home, now: friday).environment(\.colorScheme, scheme)))
         }
+        // Home, take two (the tutor's note), beside the first for comparison.
+        func note(_ name: String, _ scheme: ColorScheme, size: CGSize = landscape) -> GalleryEntry {
+            let view = HomeNoteView(now: friday)
+                .environment(AppRouter(route: .home))
+                .environment(\.colorScheme, scheme)
+            return GalleryEntry(name: name, size: size, view: AnyView(view))
+        }
         return [
+            note("00-home-b-light", .light),
+            note("00-home-b-dark", .dark),
+            note("00-home-b-portrait", .light, size: portrait),
+            note("00-home-b-full", .light, size: CGSize(width: 1180, height: 1500)),
             foundation(.light),
             foundation(.dark),
             home("00-home-light", .light),
