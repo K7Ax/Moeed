@@ -64,7 +64,7 @@ public struct HomeNoteView: View {
 
     // MARK: The note
 
-    /// «باقي لك ٢٥ دقيقة على الموجات الجيبية، وعندك ٧ أسئلة غلطت فيها.» with the lecture underlined in ink.
+    /// «باقي لك 25 دقيقة على الموجات الجيبية، وعندك 7 أسئلة غلطت فيها.» with the lecture underlined in ink.
     private func note(wide: Bool) -> some View {
         let size: CGFloat = wide ? 36 : 30
         let lecture = Samples.resume.lecture
@@ -78,7 +78,7 @@ public struct HomeNoteView: View {
             .font(Typeface.plex(13, .medium))
             .foregroundStyle(Palette.text2)
             HStack(alignment: .firstTextBaseline, spacing: 0) {
-                Text("باقي لك ٢٥ دقيقة على ")
+                Text("باقي لك 25 دقيقة على ")
                     .foregroundStyle(Palette.text2)
                 Text(verbatim: lecture.arabicTitle)
                     .font(Typeface.plex(size, .semibold))
@@ -95,7 +95,7 @@ public struct HomeNoteView: View {
             }
             .font(Typeface.plex(size, .regular))
             .padding(.top, 14)
-            Text(verbatim: "وعندك \(due.eastern) أسئلة غلطت فيها.")
+            Text(verbatim: "وعندك \(due.figures) أسئلة غلطت فيها.")
                 .font(Typeface.plex(size, .regular))
                 .foregroundStyle(Palette.text2)
                 .padding(.top, 2)
@@ -129,7 +129,7 @@ public struct HomeNoteView: View {
         let resume = Samples.resume
         let lecture = resume.lecture
         return VStack(alignment: .leading, spacing: 0) {
-            Text(verbatim: "المحاضرة \(HomeDate.ordinal(lecture.number)) · صفحة \(resume.page.eastern) من \(lecture.slideCount.eastern)")
+            Text(verbatim: "المحاضرة \(HomeDate.ordinal(lecture.number)) · صفحة \(resume.page.figures) من \(lecture.slideCount.figures)")
                 .font(Typeface.plex(13, .medium))
                 .foregroundStyle(Palette.text2)
             Text(verbatim: resume.stepTitle)
@@ -137,7 +137,7 @@ public struct HomeNoteView: View {
                 .foregroundStyle(Palette.text)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 6)
-            Text(verbatim: "الخطوة \(resume.step.eastern) من \(resume.stepCount.eastern)")
+            Text(verbatim: "الخطوة \(resume.step.figures) من \(resume.stepCount.figures)")
                 .font(Typeface.plex(15))
                 .foregroundStyle(Palette.text2)
                 .padding(.top, 4)
@@ -158,12 +158,12 @@ public struct HomeNoteView: View {
 
     // MARK: Review
 
-    private static let due = ["اليوم", "اليوم", "بكرة", "بعد ٣ أيام", "بعد أسبوع"]
+    private static let due = ["اليوم", "اليوم", "بكرة", "بعد 3 أيام", "بعد أسبوع"]
 
     private var review: some View {
         let items = Array(Samples.reviewItems.prefix(3))
         return VStack(alignment: .leading, spacing: 0) {
-            NoteHead(title: "للمراجعة", detail: (Samples.reviewItems.count + 2).eastern, action: "ابدأ") { select(.review) }
+            NoteHead(title: "للمراجعة", detail: (Samples.reviewItems.count + 2).figures, action: "ابدأ") { select(.review) }
             ForEach(Array(items.enumerated()), id: \.element.id) { k, item in
                 if k > 0 { Rectangle().fill(Palette.sep).frame(height: 0.5) }
                 Button { select(.review) } label: {
@@ -195,7 +195,7 @@ public struct HomeNoteView: View {
             }
         }
         return VStack(alignment: .leading, spacing: 0) {
-            NoteHead(title: Samples.course.name, detail: "\(done.eastern) من ١٢", action: "المكتبة") { select(.library) }
+            NoteHead(title: Samples.course.name, detail: "\(done.figures) من 12", action: "المكتبة") { select(.library) }
                 .padding(.bottom, 16)
             Group {
                 if isSnapshot {
@@ -278,9 +278,9 @@ private struct NoteCover: View {
 
     private func caption(_ state: CoverState) -> String {
         switch state {
-        case let .preparing(progress): "يتجهّز · \(Int((progress * 100).rounded()).eastern)٪"
-        case .current: "وصلت صفحة \(Samples.resume.page.eastern)"
-        default: "\(lecture.slideCount.eastern) صفحة"
+        case let .preparing(progress): "يتجهّز · \(Int((progress * 100).rounded()).figures)%"
+        case .current: "وصلت صفحة \(Samples.resume.page.figures)"
+        default: "\(lecture.slideCount.figures) صفحة"
         }
     }
 }
@@ -288,7 +288,7 @@ private struct NoteCover: View {
 private enum NoteText {
     /// Math between backticks, held left-to-right inside the Arabic line.
     static func isolate(_ text: String) -> String {
-        let parts = text.eastern.split(separator: "`", omittingEmptySubsequences: false)
+        let parts = text.figures.split(separator: "`", omittingEmptySubsequences: false)
         var joined = ""
         for (k, part) in parts.enumerated() {
             let piece = String(part)

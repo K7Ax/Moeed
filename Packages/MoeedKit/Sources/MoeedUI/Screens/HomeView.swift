@@ -97,7 +97,7 @@ public struct HomeView: View {
             }
             .rise(0.33)
             VStack(alignment: .leading, spacing: 0) {
-                SectionHead("للمراجعة · \((Samples.reviewItems.count + 2).eastern)", action: "ابدأ المراجعة") { select(.review) }
+                SectionHead("للمراجعة · \((Samples.reviewItems.count + 2).figures)", action: "ابدأ المراجعة") { select(.review) }
                 ReviewList(limit: wide ? 4 : 3) { select(.review) }
                 Text("الأسئلة اللي غلطت فيها ترجع لك هنا، كل وحدة مع مكانها في السلايد.")
                     .font(Typeface.plex(13))
@@ -172,22 +172,22 @@ enum HomeDate {
     static let months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
     static let ordinals = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة", "التاسعة", "العاشرة", "الحادية عشرة", "الثانية عشرة"]
 
-    /// Today, Gregorian and Umm al-Qura: «الجمعة، ١٦ أكتوبر · ٤ جمادى الأولى».
+    /// Today, Gregorian and Umm al-Qura: «الجمعة، 16 أكتوبر · 4 جمادى الأولى».
     static func line(_ date: Date) -> String {
         let gregorian = Calendar(identifier: .gregorian)
         let parts = gregorian.dateComponents([.weekday, .day, .month], from: date)
-        var line = "\(days[(parts.weekday ?? 1) - 1])، \((parts.day ?? 1).eastern) \(months[(parts.month ?? 1) - 1])"
+        var line = "\(days[(parts.weekday ?? 1) - 1])، \((parts.day ?? 1).figures) \(months[(parts.month ?? 1) - 1])"
         let hijri = DateFormatter()
         hijri.calendar = Calendar(identifier: .islamicUmmAlQura)
-        hijri.locale = Locale(identifier: "ar")
+        hijri.locale = Locale(identifier: "ar@numbers=latn")
         hijri.dateFormat = "d MMMM"
         let h = hijri.string(from: date).replacingOccurrences(of: "هـ", with: "").trimmingCharacters(in: .whitespaces)
-        if !h.isEmpty { line += " · " + h.eastern }
+        if !h.isEmpty { line += " · " + h.figures }
         return line
     }
 
     static func ordinal(_ n: Int) -> String {
-        n >= 1 && n <= ordinals.count ? ordinals[n - 1] : n.eastern
+        n >= 1 && n <= ordinals.count ? ordinals[n - 1] : n.figures
     }
 }
 
@@ -275,12 +275,12 @@ private struct NowCard: View {
                 .font(Typeface.plex(wide ? 32 : 26, .bold))
                 .foregroundStyle(.white)
                 .padding(.top, 6)
-            Text(verbatim: "المحاضرة \(HomeDate.ordinal(lecture.number)) · صفحة \(resume.page.eastern) من \(lecture.slideCount.eastern)")
+            Text(verbatim: "المحاضرة \(HomeDate.ordinal(lecture.number)) · صفحة \(resume.page.figures) من \(lecture.slideCount.figures)")
                 .font(Typeface.plex(15))
                 .foregroundStyle(.white.opacity(0.62))
             Pips(count: resume.stepCount, at: resume.step - 1)
                 .padding(.top, 16)
-            Text(verbatim: "الخطوة \(resume.step.eastern) من \(resume.stepCount.eastern): \(resume.stepTitle)")
+            Text(verbatim: "الخطوة \(resume.step.figures) من \(resume.stepCount.figures): \(resume.stepTitle)")
                 .font(Typeface.plex(15))
                 .foregroundStyle(.white.opacity(0.88))
                 .padding(.top, 10)
@@ -290,10 +290,10 @@ private struct NowCard: View {
                 }
                 .frame(width: 22, height: 22)
                 HStack(spacing: 0) {
-                    Count(to: Int((lecture.progress * 100).rounded()), delay: 0.5, suffix: "٪")
+                    Count(to: Int((lecture.progress * 100).rounded()), delay: 0.5, suffix: "%")
                         .font(Typeface.plex(13, .semibold))
                         .foregroundStyle(.white)
-                    Text(" من المحاضرة · باقي تقريبًا ٢٥ دقيقة")
+                    Text(" من المحاضرة · باقي تقريبًا 25 دقيقة")
                         .font(Typeface.plex(13))
                         .foregroundStyle(.white.opacity(0.62))
                 }
@@ -424,7 +424,7 @@ private struct WeekCard: View {
         HStack(alignment: .top, spacing: 12) {
             stat(week.total(today: today), "دقيقة هالأسبوع", delay: 0.3)
             stat(streak, streak > 2 ? "أيام ورا بعض" : "يوم ورا بعض", delay: 0.45)
-            stat(Int((week.firstTryRate * 100).rounded()), "صح من أول مرة", delay: 0.6, suffix: "٪")
+            stat(Int((week.firstTryRate * 100).rounded()), "صح من أول مرة", delay: 0.6, suffix: "%")
         }
     }
 
@@ -471,7 +471,7 @@ private struct Day: View {
             }
             .frame(width: 34, height: 34)
             .padding(.top, 8)
-            Text(verbatim: minutes.map { $0.eastern } ?? "—")
+            Text(verbatim: minutes.map { $0.figures } ?? "—")
                 .font(Typeface.plex(11))
                 .foregroundStyle(minutes == nil ? Palette.text3 : Palette.text2)
                 .padding(.top, 4)
@@ -543,9 +543,9 @@ private struct ShelfItem: View {
 
     private func subtitle(_ state: CoverState) -> String {
         switch state {
-        case let .preparing(progress): "يتجهّز · \(Int((progress * 100).rounded()).eastern)٪"
-        case .current: "وصلت صفحة \(Samples.resume.page.eastern) من \(lecture.slideCount.eastern)"
-        default: "خلصتها · \(lecture.slideCount.eastern) صفحة"
+        case let .preparing(progress): "يتجهّز · \(Int((progress * 100).rounded()).figures)%"
+        case .current: "وصلت صفحة \(Samples.resume.page.figures) من \(lecture.slideCount.figures)"
+        default: "خلصتها · \(lecture.slideCount.figures) صفحة"
         }
     }
 
@@ -589,7 +589,7 @@ private struct Preparing: View {
                         .font(Typeface.plex(17, .semibold))
                         .foregroundStyle(Palette.text)
                         .lineLimit(1)
-                    Text(verbatim: "\(ready.eastern) من \(total.eastern) شريحة جاهزة · باقي تقريبًا \(left.eastern) \(left > 2 && left < 11 ? "دقايق" : "دقيقة")")
+                    Text(verbatim: "\(ready.figures) من \(total.figures) شريحة جاهزة · باقي تقريبًا \(left.figures) \(left > 2 && left < 11 ? "دقايق" : "دقيقة")")
                         .font(Typeface.plex(13))
                         .foregroundStyle(Palette.text2)
                         .contentTransition(.numericText())
@@ -691,7 +691,7 @@ private struct Thumb: View {
             .aspectRatio(4 / 3, contentMode: .fit)
             .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(Palette.sep, lineWidth: 0.5))
-            Text(verbatim: number.eastern)
+            Text(verbatim: number.figures)
                 .font(Typeface.plex(10))
                 .foregroundStyle(state == .writing ? Palette.accent : Palette.text3)
         }
@@ -735,7 +735,7 @@ private struct ReviewList: View {
     let limit: Int
     let open: () -> Void
 
-    private static let due = ["اليوم", "اليوم", "بكرة", "بعد ٣ أيام", "بعد أسبوع"]
+    private static let due = ["اليوم", "اليوم", "بكرة", "بعد 3 أيام", "بعد أسبوع"]
 
     var body: some View {
         let items = Array(Samples.reviewItems.prefix(limit))
@@ -764,7 +764,7 @@ private struct ReviewList: View {
                     .font(Typeface.plex(16, .medium))
                     .foregroundStyle(Palette.text)
                     .lineLimit(1)
-                Text(verbatim: "جاوبت \(Self.ltr(item.yourAnswer.eastern)) · المحاضرة \(item.lectureNumber.eastern)، صفحة \(item.page.eastern)")
+                Text(verbatim: "جاوبت \(Self.ltr(item.yourAnswer.figures)) · المحاضرة \(item.lectureNumber.figures)، صفحة \(item.page.figures)")
                     .font(Typeface.plex(13))
                     .foregroundStyle(Palette.text2)
                     .lineLimit(1)
@@ -787,7 +787,7 @@ private struct ReviewList: View {
 
     /// Math between backticks, held left-to-right inside the Arabic line.
     static func isolate(_ text: String) -> String {
-        let parts = text.eastern.split(separator: "`", omittingEmptySubsequences: false)
+        let parts = text.figures.split(separator: "`", omittingEmptySubsequences: false)
         return "\u{200F}" + parts.enumerated().map { k, s in k % 2 == 1 ? ltr(String(s)) : String(s) }.joined()
     }
 
@@ -823,7 +823,7 @@ private struct MiniPlayer: View {
                             .font(Typeface.plex(15, .semibold))
                             .foregroundStyle(Palette.text)
                             .lineLimit(1)
-                        Text(verbatim: "\(resume.lecture.arabicTitle) · الخطوة \(resume.step.eastern) من \(resume.stepCount.eastern)")
+                        Text(verbatim: "\(resume.lecture.arabicTitle) · الخطوة \(resume.step.figures) من \(resume.stepCount.figures)")
                             .font(Typeface.plex(13))
                             .foregroundStyle(Palette.text2)
                             .lineLimit(1)
@@ -888,8 +888,8 @@ struct HomeSidebar: View {
     static let width: CGFloat = 220
 
     private static let courses: [(code: String, name: String, color: Color, done: Int, all: Int)] = [
-        ("٢٠٧", "الدوائر الكهربائية", Cover.samples[4].color, 4, 12),
-        ("٢١١", "الإلكترونيات", Cover.samples[0].color, 0, 10),
+        ("207", "الدوائر الكهربائية", Cover.samples[4].color, 4, 12),
+        ("211", "الإلكترونيات", Cover.samples[0].color, 0, 10),
     ]
 
     var body: some View {
@@ -925,7 +925,7 @@ struct HomeSidebar: View {
                             .foregroundStyle(Palette.text)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Text(verbatim: "\(course.done.eastern)/\(course.all.eastern)")
+                        Text(verbatim: "\(course.done.figures)/\(course.all.figures)")
                             .font(Typeface.plex(12))
                             .foregroundStyle(Palette.text3)
                     }
@@ -955,7 +955,7 @@ struct HomeSidebar: View {
                     .foregroundStyle(on ? Palette.accent : Palette.text)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if let badge = item.badge {
-                    Text(verbatim: badge.eastern)
+                    Text(verbatim: badge.figures)
                         .font(Typeface.plex(13, .medium))
                         .foregroundStyle(Palette.text2)
                 }

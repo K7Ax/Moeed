@@ -87,7 +87,7 @@ struct Tween<Content: View>: View {
     }
 }
 
-/// A whole number that counts up as it animates, in Eastern Arabic figures.
+/// A whole number that counts up as it animates, in Latin figures.
 struct CountingText: View, Animatable {
     var value: Double
     var suffix = ""
@@ -98,7 +98,7 @@ struct CountingText: View, Animatable {
     }
 
     var body: some View {
-        Text(verbatim: Int(value.rounded()).eastern + suffix)
+        Text(verbatim: Int(value.rounded()).figures + suffix)
     }
 }
 

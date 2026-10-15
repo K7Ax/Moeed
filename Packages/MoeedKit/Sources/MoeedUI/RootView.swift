@@ -48,7 +48,7 @@ public struct RootView: View {
             }
         }
         .environment(router)
-        .environment(\.locale, Locale(identifier: "ar"))
+        .environment(\.locale, Locale(identifier: "ar@numbers=latn"))
         .preferredColorScheme(router.route == .home ? nil : .light)
     }
 }

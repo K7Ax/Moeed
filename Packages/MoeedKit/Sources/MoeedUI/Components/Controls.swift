@@ -125,7 +125,7 @@ struct ProgressTrack: View {
         }
         .frame(height: height)
         .accessibilityElement()
-        .accessibilityValue(Text("\(Int(value * 100))٪"))
+        .accessibilityValue(Text("\(Int(value * 100))%"))
     }
 }
 

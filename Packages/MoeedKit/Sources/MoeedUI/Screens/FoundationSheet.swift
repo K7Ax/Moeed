@@ -45,12 +45,12 @@ public struct FoundationSheet: View {
     private var typeRamp: some View {
         section("الخط · IBM Plex Sans Arabic") {
             VStack(alignment: .leading, spacing: 10) {
-                ramp("عنوان كبير", 34, .bold, "٣٤ عريض")
-                ramp("عنوان القسم", 22, .semibold, "٢٢ شبه عريض")
-                ramp("نص الشرح يمشي معك كلمة كلمة", 17, .regular, "١٧ عادي")
-                ramp("بقي ٩ دقائق · الشريحة ١٦ من ٤٨", 13, .medium, "١٣ متوسط")
-                ramp("خفيف للأرقام الكبيرة", 15, .light, "١٥ خفيف")
-                Text(RichText.attributed("عند `t = 0.3 s` تكون الموجة في القاع، و`v = 10 sin(ωt)` أقصاها ١٠."))
+                ramp("عنوان كبير", 34, .bold, "34 عريض")
+                ramp("عنوان القسم", 22, .semibold, "22 شبه عريض")
+                ramp("نص الشرح يمشي معك كلمة كلمة", 17, .regular, "17 عادي")
+                ramp("بقي 9 دقائق · الشريحة 16 من 48", 13, .medium, "13 متوسط")
+                ramp("خفيف للأرقام الكبيرة", 15, .light, "15 خفيف")
+                Text(RichText.attributed("عند `t = 0.3 s` تكون الموجة في القاع، و`v = 10 sin(ωt)` أقصاها 10."))
                     .font(Typeface.plex(17))
                     .foregroundStyle(Palette.text)
                     .padding(.top, 4)
@@ -69,9 +69,9 @@ public struct FoundationSheet: View {
     private var figures: some View {
         section("الأرقام") {
             HStack(alignment: .firstTextBaseline, spacing: 22) {
-                stat(16.eastern, "محاضرة")
-                stat("0.3".eastern, "ثانية")
-                stat(48.eastern, "شريحة")
+                stat(16.figures, "محاضرة")
+                stat("0.3".figures, "ثانية")
+                stat(48.figures, "شريحة")
             }
         }
     }
@@ -79,8 +79,8 @@ public struct FoundationSheet: View {
     private var palette: some View {
         section("الألوان") {
             let swatches: [(String, Adaptive)] = [
-                ("الخلفية", Palette.bg), ("مرفوع", Palette.raised), ("مرفوع ٢", Palette.raised2),
-                ("نص", Palette.text), ("نص ٢", Palette.text2), ("نص ٣", Palette.text3),
+                ("الخلفية", Palette.bg), ("مرفوع", Palette.raised), ("مرفوع 2", Palette.raised2),
+                ("نص", Palette.text), ("نص 2", Palette.text2), ("نص 3", Palette.text3),
                 ("تعبئة", Palette.fill), ("فاصل", Palette.sep),
                 ("الأساسي", Palette.accent), ("ناعم", Palette.accentSoft), ("الحبر", Palette.ink), ("تنبيه", Palette.alert),
             ]

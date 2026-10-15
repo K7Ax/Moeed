@@ -80,7 +80,7 @@ public struct Cover: Sendable, Hashable {
     public let english: String
     public let color: Color
 
-    public static let code = "كهر ٢٠٧"
+    public static let code = "كهر 207"
 
     public static let samples: [Cover] = [
         Cover(number: 1, word: "الأساس", english: "Circuit Basics", color: Color(hex: 0x2E4C73)),

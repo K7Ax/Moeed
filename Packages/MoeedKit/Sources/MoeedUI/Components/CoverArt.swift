@@ -51,7 +51,7 @@ public struct CoverArt: View {
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.07, style: .continuous))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("المحاضرة \(cover.number.eastern): \(cover.word)")
+        .accessibilityLabel("المحاضرة \(cover.number.figures): \(cover.word)")
     }
 
     /// The line drawing, from the top-left, at 40 % white.
@@ -80,7 +80,7 @@ public struct CoverArt: View {
                     .font(Typeface.plex(max(9, size * 0.068), .semibold))
                     .foregroundStyle(.white.opacity(0.75))
                 Spacer(minLength: 0)
-                Text(cover.number.eastern)
+                Text(cover.number.figures)
                     .font(Typeface.plex(size * 0.15, .bold))
                     .foregroundStyle(.white)
             }

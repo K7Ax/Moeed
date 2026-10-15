@@ -18,7 +18,7 @@ struct SnapshotTool {
             let content = entry.view
                 .frame(width: entry.size.width, height: entry.size.height)
                 .environment(\.layoutDirection, .rightToLeft)
-                .environment(\.locale, Locale(identifier: "ar"))
+                .environment(\.locale, Locale(identifier: "ar@numbers=latn"))
                 .environment(\.isSnapshot, true)
 
             let renderer = ImageRenderer(content: content)

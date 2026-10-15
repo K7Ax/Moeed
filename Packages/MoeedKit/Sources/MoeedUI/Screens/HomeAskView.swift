@@ -179,7 +179,7 @@ public struct HomeAskView: View {
     private static let suggestions: [[Suggestion]] = [
         [
             Suggestion(id: 0, label: "أكمل الموجات الجيبية", action: nil),
-            Suggestion(id: 1, label: "راجع أخطائي · ٧", action: .review),
+            Suggestion(id: 1, label: "راجع أخطائي · 7", action: .review),
             Suggestion(id: 2, label: "اختبرني على كيرشوف", action: .review),
         ],
         [
@@ -230,7 +230,7 @@ public struct HomeAskView: View {
                             .font(Typeface.plex(16, .semibold))
                             .foregroundStyle(Palette.text)
                             .lineLimit(1)
-                        Text(verbatim: "\(resume.lecture.arabicTitle) · الخطوة \(resume.step.eastern) من \(resume.stepCount.eastern)")
+                        Text(verbatim: "\(resume.lecture.arabicTitle) · الخطوة \(resume.step.figures) من \(resume.stepCount.figures)")
                             .font(Typeface.plex(13))
                             .foregroundStyle(Palette.text2)
                             .lineLimit(1)

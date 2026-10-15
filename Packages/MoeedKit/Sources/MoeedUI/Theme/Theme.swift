@@ -197,7 +197,7 @@ struct ColumnRule: View {
     }
 }
 
-/// The dotted leader of a table of contents: «المحاضرة الخامسة ........ ص ١٦».
+/// The dotted leader of a table of contents: «المحاضرة الخامسة ........ ص 16».
 struct Leader: View {
     var body: some View {
         Line()
@@ -255,10 +255,10 @@ enum RichText {
     static func ltr(_ text: String) -> String { "\u{2066}" + text + "\u{2069}" }
 
     /// Renders backtick spans as bold, left-to-right runs: "عند `0.3 s` احنا في القاع",
-    /// with every figure in Eastern Arabic, math included: "عند ٠٫٣ s".
+    /// with every figure in Latin digits, math included: "عند 0.3 s".
     static func attributed(_ raw: String) -> AttributedString {
         var result = AttributedString()
-        for (index, part) in raw.eastern.split(separator: "`", omittingEmptySubsequences: false).enumerated() {
+        for (index, part) in raw.figures.split(separator: "`", omittingEmptySubsequences: false).enumerated() {
             if index % 2 == 1 {
                 var run = AttributedString(ltr(String(part)))
                 run.inlinePresentationIntent = .stronglyEmphasized
