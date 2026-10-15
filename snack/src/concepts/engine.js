@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, PanResponder, Platform, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
-import { F, INK, T, clamp01, easeInOut, inkDelay, inkTotal, ltr } from '../theme';
+import { F, INK, T, clamp01, easeInOut, face, inkDelay, inkTotal, ltr } from '../theme';
 import { DrawnPath } from '../pen';
 import { SineArt, markGeometry, useClock } from '../slide';
 import { haptic } from '../controls';
@@ -211,7 +211,7 @@ export function Glossed({ text, size = 16, w = '400', color, term, mark, font, t
       {'‏'}
       {parts.map((part, k) =>
         k % 2 === 1 ? (
-          <Text key={k} style={{ color: term || color, fontWeight: '700', fontFamily: termFont, backgroundColor: mark }}>
+          <Text key={k} style={[face('700'), { color: term || color, backgroundColor: mark }, termFont ? { fontFamily: termFont } : null]}>
             {ltr((mark ? ' ' : '') + part.replace(/ /g, ' ') + (mark ? ' ' : ''))}
           </Text>
         ) : (

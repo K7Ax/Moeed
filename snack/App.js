@@ -3,7 +3,16 @@
 import React, { useState } from 'react';
 import { StatusBar, View, useColorScheme, useWindowDimensions } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { C, applyScheme } from './src/theme';
+import { useFonts } from 'expo-font';
+import {
+  IBMPlexSansArabic_300Light,
+  IBMPlexSansArabic_400Regular,
+  IBMPlexSansArabic_500Medium,
+  IBMPlexSansArabic_600SemiBold,
+  IBMPlexSansArabic_700Bold,
+} from '@expo-google-fonts/ibm-plex-sans-arabic';
+import { Brygada1918_500Medium, Brygada1918_500Medium_Italic, Brygada1918_700Bold } from '@expo-google-fonts/brygada-1918';
+import { C, applyScheme, setFacesLoaded } from './src/theme';
 import { sinePage } from './src/data';
 import { Drawer, MobileHeader, Rail, Sidebar } from './src/shell';
 import { LibraryScreen } from './src/library';
@@ -16,6 +25,17 @@ import { ConceptsRoot } from './src/concepts/gallery';
 const TITLES = { library: 'مُعيد', review: 'المراجعة', import: 'محاضرة جديدة', player: 'الشرح' };
 
 export default function App() {
+  const [facesReady] = useFonts({
+    'Plex-300': IBMPlexSansArabic_300Light,
+    'Plex-400': IBMPlexSansArabic_400Regular,
+    'Plex-500': IBMPlexSansArabic_500Medium,
+    'Plex-600': IBMPlexSansArabic_600SemiBold,
+    'Plex-700': IBMPlexSansArabic_700Bold,
+    'Brygada-500': Brygada1918_500Medium,
+    'Brygada-500i': Brygada1918_500Medium_Italic,
+    'Brygada-700': Brygada1918_700Bold,
+  });
+  setFacesLoaded(facesReady);
   const { width } = useWindowDimensions();
   const system = useColorScheme();
   const [mode, setMode] = useState('system');

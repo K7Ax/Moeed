@@ -110,26 +110,57 @@ export const END = swapped ? 'right' : 'left';
 const RLM = '‏';
 export const ltr = (s) => '⁦' + s + '⁩';
 
+// MARK: Faces and figures
+
+// IBM Plex Sans Arabic for every Arabic word, Brygada 1918 for the English titles the slides
+// carry. They're loaded once at launch (App.js); until they arrive, the system face stands in.
+let faces = false;
+export const setFacesLoaded = (on) => {
+  faces = on;
+};
+const PLEX = { 100: 300, 200: 300, 300: 300, 400: 400, normal: 400, 500: 500, 600: 600, 700: 700, bold: 700, 800: 700, 900: 700 };
+
+/** The style for a weight: a named face once loaded (custom faces don't synthesise weights). */
+export function face(w = '400', serif = false, italic = false) {
+  if (!faces) return { fontWeight: String(w), fontFamily: serif ? F.serif : undefined, fontStyle: italic ? 'italic' : 'normal' };
+  if (serif) return { fontFamily: italic ? 'Brygada-500i' : Number(w) >= 600 ? 'Brygada-700' : 'Brygada-500', fontWeight: 'normal', fontStyle: 'normal' };
+  return { fontFamily: 'Plex-' + (PLEX[w] || 400), fontWeight: 'normal', fontStyle: 'normal' };
+}
+
+// Every figure the app writes is an Eastern Arabic one: ١٦ not 16, ٠٫٣ not 0.3. The slide itself
+// is the lecturer's page and keeps its own figures.
+const EASTERN = '٠١٢٣٤٥٦٧٨٩';
+export const digits = (s) => s.replace(/(\d)\.(\d)/g, '$1٫$2').replace(/[0-9]/g, (d) => EASTERN[d]);
+
+function easternize(node) {
+  if (typeof node === 'string') return digits(node);
+  if (typeof node === 'number') return digits(String(node));
+  if (Array.isArray(node)) return node.map(easternize);
+  if (React.isValidElement(node) && node.props && node.props.children !== undefined) {
+    return React.cloneElement(node, undefined, easternize(node.props.children));
+  }
+  return node;
+}
+
 /** Arabic text: one family, hierarchy by weight and size only. */
 export function T({ size = 15, w = '400', color, serif, italic, align, lh, style, children, ...rest }) {
+  const body = typeof children === 'string' && (!serif || /[؀-ۿ]/.test(children)) ? RLM + children : children;
   return (
     <Text
       {...rest}
       style={[
         {
           fontSize: size,
-          fontWeight: w,
           color: color || C.text,
           textAlign: align || START,
           writingDirection: 'rtl',
-          fontFamily: serif ? F.serif : undefined,
-          fontStyle: italic ? 'italic' : 'normal',
-          lineHeight: lh === undefined ? (serif ? undefined : Math.round(size * 1.5)) : lh,
+          lineHeight: lh === undefined ? (serif ? undefined : Math.round(size * 1.55)) : lh,
         },
+        face(w, serif, italic),
         style,
       ]}
     >
-      {typeof children === 'string' && (!serif || /[؀-ۿ]/.test(children)) ? RLM + children : children}
+      {serif ? body : easternize(body)}
     </Text>
   );
 }
@@ -147,7 +178,7 @@ export function Rich({ text, size = 16, w = '400', color, style, ...rest }) {
       {RLM}
       {parts.map((p, i) =>
         i % 2 === 1 ? (
-          <Text key={i} style={{ fontWeight: '700' }}>
+          <Text key={i} style={face('700')}>
             {ltr(p.replace(/ /g, ' '))}
           </Text>
         ) : (
