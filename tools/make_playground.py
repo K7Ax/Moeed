@@ -60,7 +60,8 @@ let package = Package(
             name: "AppModule",
             path: ".",
             resources: [
-                .copy("Resources/Fonts")
+                .copy("Resources/Fonts"),
+                .copy("Resources/Brand")
             ]
         )
     ]
@@ -137,8 +138,8 @@ def main() -> int:
             target.write_text(text, encoding="utf-8", newline="\n")
             count += 1
 
-    # The bundled faces, at the same path MoeedUI's Package.swift copies them from.
-    shutil.copytree(SOURCES / "MoeedUI" / "Resources" / "Fonts", OUT / "Resources" / "Fonts")
+    # The bundled faces and logo, at the same paths MoeedUI's Package.swift copies them from.
+    shutil.copytree(SOURCES / "MoeedUI" / "Resources", OUT / "Resources")
 
     if has_logo:
         shutil.copytree(ROOT / "App" / "Assets.xcassets", OUT / "Assets.xcassets")

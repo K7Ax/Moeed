@@ -138,8 +138,11 @@ public struct Lecture: Identifiable, Hashable, Sendable {
     public var explainedCount: Int
     public var status: LectureStatus
     public var progress: Double
+    /// The lecture's Arabic name, as the student calls it.
+    public var arabicTitle: String
 
-    public init(id: String, number: Int, title: String, slideCount: Int, explainedCount: Int, status: LectureStatus, progress: Double) {
+    public init(id: String, number: Int, title: String, slideCount: Int, explainedCount: Int, status: LectureStatus, progress: Double, arabicTitle: String = "") {
+        self.arabicTitle = arabicTitle
         self.id = id
         self.number = number
         self.title = title
@@ -178,6 +181,40 @@ public struct ResumePoint: Hashable, Sendable {
         self.stepCount = stepCount
         self.stepTitle = stepTitle
         self.askCount = askCount
+    }
+}
+
+/// Minutes studied each day of one week, Sunday first, against a daily goal.
+public struct StudyWeek: Hashable, Sendable {
+    public var minutes: [Int]
+    public var goal: Int
+    /// Share of questions answered right on the first try this week.
+    public var firstTryRate: Double
+
+    public init(minutes: [Int], goal: Int, firstTryRate: Double) {
+        self.minutes = minutes
+        self.goal = goal
+        self.firstTryRate = firstTryRate
+    }
+
+    /// The week as far as `today` (0 = Sunday); days still to come are nil.
+    public func sofar(today: Int) -> [Int?] {
+        minutes.indices.map { $0 > today ? nil : minutes[$0] }
+    }
+
+    public func total(today: Int) -> Int {
+        sofar(today: today).reduce(0) { $0 + ($1 ?? 0) }
+    }
+
+    /// Days in a row with some study, counting back from today.
+    public func streak(today: Int) -> Int {
+        var count = 0
+        var day = min(today, minutes.count - 1)
+        while day >= 0, minutes[day] > 0 {
+            count += 1
+            day -= 1
+        }
+        return count
     }
 }
 

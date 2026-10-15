@@ -19,6 +19,9 @@ public struct Adaptive: ShapeStyle, Sendable {
     /// The plain colour for a scheme, for the few APIs that want a `Color` (shadows, gradients).
     public func color(_ scheme: ColorScheme) -> Color { scheme == .dark ? dark : light }
 
+    /// The same colour in both schemes.
+    public static func fixed(_ color: Color) -> Adaptive { Adaptive(color, color) }
+
     public func opacity(_ amount: Double) -> Adaptive {
         Adaptive(light.opacity(amount), dark.opacity(amount))
     }

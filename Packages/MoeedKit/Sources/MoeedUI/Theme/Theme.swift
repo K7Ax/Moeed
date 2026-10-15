@@ -277,6 +277,18 @@ private struct SnapshotKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct InkColorKey: EnvironmentKey {
+    static let defaultValue = Theme.red
+}
+
+extension EnvironmentValues {
+    /// The tutor's pen on a slide: red on the paper screens, teal in «الأصلي».
+    var inkColor: Color {
+        get { self[InkColorKey.self] }
+        set { self[InkColorKey.self] = newValue }
+    }
+}
+
 public extension EnvironmentValues {
     /// True while rendering static screenshots: skip platform-backed controls and playback.
     var isSnapshot: Bool {

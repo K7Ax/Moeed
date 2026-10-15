@@ -6,12 +6,12 @@ import MoeedCore
 @Observable
 public final class AppRouter {
     public enum Route: Hashable {
-        case library, review, player, importing
+        case home, library, review, player, importing
     }
 
     public var route: Route
 
-    public init(route: Route = .library) {
+    public init(route: Route = .home) {
         self.route = route
     }
 }
@@ -20,32 +20,43 @@ public struct RootView: View {
     @State private var router: AppRouter
     @State private var player: PlayerModel
     private let startExplaining: Bool
+    private let now: Date?
 
     @MainActor
-    public init(route: AppRouter.Route = .library, player: PlayerModel? = nil, startExplaining: Bool = false) {
+    public init(route: AppRouter.Route = .home, player: PlayerModel? = nil, startExplaining: Bool = false, now: Date? = nil) {
         _router = State(initialValue: AppRouter(route: route))
         _player = State(initialValue: player ?? PlayerModel(page: Samples.sinePage))
         self.startExplaining = startExplaining
+        self.now = now
     }
 
     public var body: some View {
         Group {
             switch router.route {
+            case .home:
+                // «الأصلي» follows the system's light and dark.
+                HomeView(now: now ?? Date())
+                    .tint(Palette.accent)
             case .library:
-                LibraryView()
+                LibraryView().paper()
             case .review:
-                ReviewView()
+                ReviewView().paper()
             case .player:
-                PlayerView(model: player, explaining: startExplaining)
+                PlayerView(model: player, explaining: startExplaining).paper()
             case .importing:
-                ImportView()
+                ImportView().paper()
             }
         }
         .environment(router)
         .environment(\.locale, Locale(identifier: "ar"))
-        .environment(\.colorScheme, .light)
-        .preferredColorScheme(.light)
-        .tint(Theme.red)
+        .preferredColorScheme(router.route == .home ? nil : .light)
+    }
+}
+
+private extension View {
+    /// The paper screens, not yet moved to «الأصلي», are always light with red ink.
+    func paper() -> some View {
+        environment(\.colorScheme, .light).tint(Theme.red)
     }
 }
 
@@ -73,9 +84,19 @@ public enum Gallery {
                 view: AnyView(FoundationSheet().environment(\.colorScheme, scheme))
             )
         }
+        // A Friday in October, so the date line and the week stay the same in every render.
+        let friday = DateComponents(calendar: Calendar(identifier: .gregorian), year: 2026, month: 10, day: 16, hour: 10).date ?? Date()
+        func home(_ name: String, _ scheme: ColorScheme, size: CGSize = landscape) -> GalleryEntry {
+            GalleryEntry(name: name, size: size, view: AnyView(RootView(route: .home, now: friday).environment(\.colorScheme, scheme)))
+        }
         return [
             foundation(.light),
             foundation(.dark),
+            home("00-home-light", .light),
+            home("00-home-dark", .dark),
+            home("00-home-portrait", .light, size: portrait),
+            home("00-home-full", .light, size: CGSize(width: 1180, height: 2160)),
+            home("00-home-full-dark", .dark, size: CGSize(width: 1180, height: 2160)),
             entry("01-library", RootView(route: .library)),
             entry("02-player", RootView(route: .player, player: PlayerModel.settled(page, step: 4, revealed: 1))),
             entry("03-ask", RootView(route: .player, player: PlayerModel.settled(page, step: 3))),

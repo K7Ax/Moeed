@@ -12,12 +12,16 @@ struct Sidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: 10) {
-                LogoSlot(size: 34)
-                Text("مُعيد")
-                    .font(Theme.text(30, .black))
-                    .foregroundStyle(Theme.ink)
+            Button { router.route = .home } label: {
+                HStack(alignment: .center, spacing: 10) {
+                    LogoSlot(size: 34)
+                    Text("مُعيد")
+                        .font(Theme.text(30, .black))
+                        .foregroundStyle(Theme.ink)
+                }
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("الرئيسية")
             Text("ملزمة الشرح")
                 .font(Theme.text(12.5, .medium))
                 .foregroundStyle(Theme.inkSoft)

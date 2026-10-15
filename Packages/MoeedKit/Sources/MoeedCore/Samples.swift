@@ -98,13 +98,27 @@ public enum Samples {
 
     public static let lecture5 = Lecture(
         id: "EE207-L5", number: 5, title: "Sinusoidal Waveforms",
-        slideCount: 51, explainedCount: 38, status: .ready, progress: 0.31
+        slideCount: 51, explainedCount: 38, status: .ready, progress: 0.31,
+        arabicTitle: "الموجات الجيبية"
     )
 
     public static let lecture6 = Lecture(
         id: "EE207-L6", number: 6, title: "Phasors",
-        slideCount: 48, explainedCount: 21, status: .preparing(progress: 0.44), progress: 0
+        slideCount: 48, explainedCount: 21, status: .preparing(progress: 0.44), progress: 0,
+        arabicTitle: "الطور والمتّجهات"
     )
+
+    /// The course so far: four finished lectures, the one in progress, and the next being prepared.
+    public static let shelf: [Lecture] = [
+        Lecture(id: "EE207-L1", number: 1, title: "Circuit Basics", slideCount: 34, explainedCount: 34, status: .ready, progress: 1, arabicTitle: "مدخل إلى الدوائر"),
+        Lecture(id: "EE207-L2", number: 2, title: "Ohm's Law & Power", slideCount: 41, explainedCount: 41, status: .ready, progress: 1, arabicTitle: "قانون أوم والقدرة"),
+        Lecture(id: "EE207-L3", number: 3, title: "Kirchhoff's Laws", slideCount: 46, explainedCount: 46, status: .ready, progress: 1, arabicTitle: "قانونا كيرشوف"),
+        Lecture(id: "EE207-L4", number: 4, title: "Capacitors & Inductors", slideCount: 39, explainedCount: 39, status: .ready, progress: 1, arabicTitle: "المكثّفات والملفّات"),
+        lecture5,
+        lecture6,
+    ]
+
+    public static let week = StudyWeek(minutes: [34, 22, 0, 41, 28, 19, 26], goal: 30, firstTryRate: 0.72)
 
     public static let course = Course(code: "EE207", name: "الدوائر الكهربائية", lectures: [lecture5, lecture6])
 

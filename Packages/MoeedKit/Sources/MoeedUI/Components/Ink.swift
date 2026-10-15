@@ -37,7 +37,7 @@ struct MarkView: View {
     var scale: CGFloat
     var drawn: Bool
     var delay: Double
-    var color: Color = Theme.red
+    @Environment(\.inkColor) private var color
 
     var body: some View {
         content

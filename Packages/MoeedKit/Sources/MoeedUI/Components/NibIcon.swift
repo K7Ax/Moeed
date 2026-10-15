@@ -14,6 +14,7 @@ public struct NibIcon: View {
     var active: Bool
 
     @State private var drawn: CGFloat = 1
+    @Environment(\.motionOff) private var motionOff
 
     public init(_ name: Name, size: CGFloat = 22, weight: CGFloat = 2.3, active: Bool = false) {
         self.name = name
@@ -39,11 +40,16 @@ public struct NibIcon: View {
         }
         .frame(width: size, height: size)
         .accessibilityHidden(true)
+        .onAppear { if active { write() } }
         .onChange(of: active) { _, isActive in
-            guard isActive else { return }
-            drawn = 0
-            withAnimation(.linear(duration: 0.52)) { drawn = 1 }
+            if isActive { write() }
         }
+    }
+
+    private func write() {
+        guard !motionOff else { return }
+        drawn = 0
+        withAnimation(.linear(duration: 0.52)) { drawn = 1 }
     }
 }
 
