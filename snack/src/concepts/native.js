@@ -6,7 +6,7 @@
 // tapping one goes back to it. Questions arrive as a line of their own, with Brilliant's quiet
 // answer buttons. Colour comes from the logo's teal and nowhere else.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { S, START, T, clamp01, isDark, ltr, readingMs } from '../theme';
 import { Icon, haptic } from '../controls';
@@ -56,6 +56,8 @@ const pal = () =>
 const COVERS = ['#2E4C73', '#5D3D8F', '#2D6A4F', '#9A4B1F', '#0B7F78', '#4B5058'];
 const PEN = '#0A8F86';
 const ASK_PEN = '#E8590C';
+// Where the sample question's answer sits on the slide: the trough at 0.3 s.
+const ANSWER_AT = [430, 510];
 
 const hair = StyleSheet.hairlineWidth;
 const current = LECTURES.find((l) => l.current);
@@ -184,12 +186,13 @@ function SectionHead({ c, title, action, onAction }) {
 }
 
 function UpNext({ c, wide, onPlay }) {
+  const [box, onBox] = useSize();
   const meta = (
     <View style={{ flex: wide ? 1 : undefined, justifyContent: 'center' }}>
       <T size={13} w="600" color={c.accent}>
         أكمل من حيث وقفت
       </T>
-      <T size={wide ? 30 : 26} w="800" color={c.text} style={{ marginTop: 4 }}>
+      <T size={wide ? 28 : 26} w="800" color={c.text} style={{ marginTop: 4 }}>
         {current.ar}
       </T>
       <T size={15} color={c.text2} style={{ marginTop: 2 }}>
@@ -206,9 +209,9 @@ function UpNext({ c, wide, onPlay }) {
       <T size={15} color={c.text} style={{ marginTop: 14 }}>
         {`الخطوة ${ar(5)} من ${ar(9)}: ${sinePage.title}`}
       </T>
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 20 }}>
         <Capsule c={c} label="أكمل" glyph="play" onPress={onPlay} />
-        <Capsule c={c} kind="tinted" label="من أول الصفحة" onPress={onPlay} />
+        <Capsule c={c} kind="tinted" label="من أولها" onPress={onPlay} />
       </View>
     </View>
   );
@@ -223,10 +226,12 @@ function UpNext({ c, wide, onPlay }) {
     );
   }
   return (
-    <View style={{ backgroundColor: c.raised, borderRadius: 22, padding: 22, flexDirection: 'row', gap: 28 }}>
-      <Pressable onPress={onPlay}>
-        <Artwork c={c} width={380} />
-      </Pressable>
+    <View onLayout={onBox} style={{ backgroundColor: c.raised, borderRadius: 22, padding: 22, flexDirection: 'row', gap: 26 }}>
+      {box && (
+        <Pressable onPress={onPlay}>
+          <Artwork c={c} width={Math.round(Math.min(420, (box.w - 70) * 0.5))} />
+        </Pressable>
+      )}
       {meta}
     </View>
   );
@@ -452,6 +457,8 @@ function tokens(text) {
 const LIT = '#FFFFFF';
 const UNLIT = 'rgba(255,255,255,0.3)';
 const TERM = '#8FF2E2';
+// Keeps `t = 0.3 s` on one line in the browser; native Text never breaks at the no-break spaces.
+const NOWRAP = Platform.OS === 'web' ? { whiteSpace: 'nowrap' } : null;
 
 /** One line of the tutor's words; the first `lit` fraction of its words are lit. */
 function Line({ text, size, lit }) {
@@ -467,8 +474,8 @@ function Line({ text, size, lit }) {
         idx += 1;
         const isOn = idx < on;
         return (
-          <Text key={j} style={{ color: isOn ? (t.term ? TERM : LIT) : UNLIT }}>
-            {t.term ? ltr(t.w.replace(/ /g, ' ')) : t.w}
+          <Text key={j} style={[{ color: isOn ? (t.term ? TERM : LIT) : UNLIT }, t.term && NOWRAP]}>
+            {t.term ? ltr(t.w.replace(/ /g, ' ')) : t.w}
           </Text>
         );
       })}
@@ -697,7 +704,13 @@ function Player({ wide, onBack }) {
   const p = usePlayer(sinePage);
   const [area, onArea] = useSize();
   const inkFor = (k) => (p.page.steps[k].ask ? ASK_PEN : PEN);
-  const overlay = ({ tip }) => (tip.drawing ? <Circle cx={tip.x} cy={tip.y} r={6} fill={inkFor(p.i)} /> : null);
+  // Once a question is answered, the slide shows where the answer was.
+  const overlay = ({ tip }) => (
+    <>
+      {tip.drawing && <Circle cx={tip.x} cy={tip.y} r={6} fill={inkFor(p.i)} />}
+      {p.step.ask && p.isAnswered && <Circle cx={ANSWER_AT[0]} cy={ANSWER_AT[1]} r={13} fill="none" stroke="#1FA34A" strokeWidth={4} />}
+    </>
+  );
 
   const top = (
     <View style={{ height: 58, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, gap: 12 }}>
