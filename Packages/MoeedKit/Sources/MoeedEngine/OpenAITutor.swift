@@ -50,7 +50,12 @@ public struct OpenAITutor: TutorModel {
                         for try await line in bytes.lines { body += line }
                         throw TutorError.http(status, body)
                     }
+                    // Kept so an empty answer can say what the service actually sent.
+                    var raw = ""
+                    var pieces = 0
                     for try await line in bytes.lines {
+                        if raw.count < 1500 { raw += line + "
+" }
                         guard line.hasPrefix("data:") else { continue }
                         let payload = line.dropFirst(5).trimmingCharacters(in: .whitespaces)
                         if payload == "[DONE]" { break }
@@ -62,9 +67,11 @@ public struct OpenAITutor: TutorModel {
                         }
                         let choices = event["choices"] as? [[String: Any]] ?? []
                         if let delta = choices.first?["delta"] as? [String: Any], let piece = delta["content"] as? String {
+                            pieces += 1
                             continuation.yield(piece)
                         }
                     }
+                    if pieces == 0 { throw TutorError.api("no text in the reply: \(raw.prefix(1500))") }
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
