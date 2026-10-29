@@ -49,23 +49,20 @@ public enum PDFGrounder {
     /// Words with their boxes, in slide space (top-left origin). A word breaks at spaces,
     /// at a jump to another line, or at a gap wider than half the letter height.
     static func words(on page: PDFPage, box: CGRect) -> [WordBox] {
-        guard let text = page.string else { return [] }
-        let units = Array(text.utf16)
-        let count = min(units.count, page.numberOfCharacters)
         var words: [WordBox] = []
-        var current: [UInt16] = []
+        var current = ""
         var bounds = CGRect.null
         var last = CGRect.null
         var start = 0
 
         func flush() {
             defer {
-                current = []
+                current = ""
                 bounds = .null
                 last = .null
             }
             guard !current.isEmpty, !bounds.isNull else { return }
-            let string = String(decoding: current, as: UTF16.self)
+            let string = current
                 .precomposedStringWithCompatibilityMapping
                 .filter { !SlideLayout.isBullet($0) }
             guard !string.isEmpty else { return }
@@ -76,17 +73,17 @@ public enum PDFGrounder {
             words.append(WordBox(string, rect, order: start))
         }
 
-        for index in 0..<count {
-            let unit = units[index]
-            let isSurrogate = (0xD800...0xDFFF).contains(unit)
-            let isSpace = Unicode.Scalar(unit).map { CharacterSet.whitespacesAndNewlines.contains($0) } ?? false
-            let rect = page.characterBounds(at: index)
-            if isSpace || (!isSurrogate && (rect.isNull || rect.width <= 0 || rect.height <= 0)) {
+        // PDFKit doesn't promise that `page.string`, `characterBounds(at:)` and `selection(for:)` share one
+        // character order, so each character's text and bounds come from the same one-character selection.
+        for index in 0..<page.numberOfCharacters {
+            guard let selection = page.selection(for: NSRange(location: index, length: 1)) else {
                 flush()
                 continue
             }
-            if isSurrogate && (rect.width <= 0 || rect.height <= 0) {
-                current.append(unit)
+            let char = selection.string ?? ""
+            let rect = selection.bounds(for: page)
+            if char.isEmpty || char.allSatisfy(\.isWhitespace) || rect.isNull || rect.width <= 0 || rect.height <= 0 {
+                flush()
                 continue
             }
             if !last.isNull {
@@ -95,7 +92,7 @@ public enum PDFGrounder {
                 if gap > height * 0.5 || abs(rect.midY - last.midY) > height * 0.5 { flush() }
             }
             if current.isEmpty { start = index }
-            current.append(unit)
+            current += char
             bounds = bounds.union(rect)
             last = rect
         }

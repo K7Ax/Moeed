@@ -59,7 +59,8 @@ final class GroundingTests: XCTestCase {
         for i in 0..<min(40, page.numberOfCharacters) {
             let b = page.characterBounds(at: i)
             let u = i < units.count ? String(decoding: [units[i]], as: UTF16.self).debugDescription : "-"
-            let sel = (page.selection(for: NSRange(location: i, length: 1))?.string ?? "nil").debugDescription
+            let one = page.selection(for: NSRange(location: i, length: 1))
+            let sel = (one?.string ?? "nil").debugDescription + " " + String(describing: one?.bounds(for: page))
             print("IDX", i, u, sel, Int(b.minX), Int(b.minY), Int(b.width), Int(b.height))
         }
         for line in page.selection(for: page.bounds(for: .cropBox))?.selectionsByLine() ?? [] {
