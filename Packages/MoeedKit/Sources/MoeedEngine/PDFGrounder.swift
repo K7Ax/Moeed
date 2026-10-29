@@ -54,6 +54,7 @@ public enum PDFGrounder {
         var bounds = CGRect.null
         var last = CGRect.null
         var start = 0
+        var previous = CGRect.null
 
         func flush() {
             defer {
@@ -82,6 +83,9 @@ public enum PDFGrounder {
             }
             let char = selection.string ?? ""
             let rect = selection.bounds(for: page)
+            // A line break selects the line's last character again; skip the repeat.
+            defer { previous = rect }
+            if !previous.isNull, abs(rect.minX - previous.minX) < 0.01, abs(rect.minY - previous.minY) < 0.01 { continue }
             if char.isEmpty || char.allSatisfy(\.isWhitespace) || rect.isNull || rect.width <= 0 || rect.height <= 0 {
                 flush()
                 continue

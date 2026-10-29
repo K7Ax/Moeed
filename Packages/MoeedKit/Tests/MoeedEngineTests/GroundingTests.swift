@@ -2,7 +2,7 @@ import CoreGraphics
 import CoreText
 import PDFKit
 import XCTest
-@testable import MoeedCore
+import MoeedCore
 @testable import MoeedEngine
 
 final class GroundingTests: XCTestCase {
@@ -51,24 +51,6 @@ final class GroundingTests: XCTestCase {
     func testTheTextLayerBecomesRegionsInSlideSpace() throws {
         let slide = try PDFGrounder.ground(makeSlide(), page: 1)
         let map = slide.map
-        print("WORDS", slide.words.map { "\($0.text)@\(Int($0.box.x)),\(Int($0.box.y)),\(Int($0.box.w))x\(Int($0.box.h))#\($0.order)" })
-        print("LISTING", map.listing)
-        let page = try XCTUnwrap(makeSlide().page(at: 0))
-        let units = Array((page.string ?? "").utf16)
-        print("COUNTS", page.numberOfCharacters, units.count)
-        for i in 0..<min(40, page.numberOfCharacters) {
-            let b = page.characterBounds(at: i)
-            let u = i < units.count ? String(decoding: [units[i]], as: UTF16.self).debugDescription : "-"
-            let one = page.selection(for: NSRange(location: i, length: 1))
-            let sel = (one?.string ?? "nil").debugDescription + " " + String(describing: one?.bounds(for: page))
-            print("IDX", i, u, sel, Int(b.minX), Int(b.minY), Int(b.width), Int(b.height))
-        }
-        for line in page.selection(for: page.bounds(for: .cropBox))?.selectionsByLine() ?? [] {
-            let b = line.bounds(for: page)
-            print("LINE", (line.string ?? "").debugDescription, Int(b.minX), Int(b.minY), Int(b.width), Int(b.height))
-        }
-        let lines = SlideLayout.lines(slide.words)
-        print("LAYOUT", lines.map { "\($0.text)@\(Int($0.box.y))" })
         XCTAssertEqual(map.width, 800)
         XCTAssertEqual(map.title, "Reading the Graph")
 
