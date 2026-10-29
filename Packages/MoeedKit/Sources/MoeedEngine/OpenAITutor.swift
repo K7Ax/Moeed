@@ -1,7 +1,7 @@
 import Foundation
 
-/// Any service that speaks the OpenAI chat-completions format: GitHub Models and Gemini have free tiers
-/// that are enough for testing; Groq, OpenRouter and local servers work the same way.
+/// Any service that speaks the OpenAI chat-completions format. Gemini Flash has a free tier that is enough
+/// for testing; Groq, OpenRouter and local servers work the same way.
 public struct OpenAITutor: TutorModel {
     public var provider: String
     public var endpoint: URL
@@ -17,18 +17,8 @@ public struct OpenAITutor: TutorModel {
         self.maxTokens = maxTokens
     }
 
-    /// GitHub Models: free with a GitHub account. In Actions the built-in token works when the
-    /// workflow has `models: read`. Free requests are capped at about 8K tokens in and 4K out.
-    public static func github(token: String, model: String = "openai/gpt-4.1-mini") -> OpenAITutor {
-        OpenAITutor(
-            provider: "github",
-            endpoint: URL(string: "https://models.github.ai/inference/chat/completions")!,
-            apiKey: token, model: model
-        )
-    }
-
     /// Gemini through its OpenAI-compatible endpoint; a free key comes from Google AI Studio.
-    public static func gemini(key: String, model: String = "gemini-2.5-flash") -> OpenAITutor {
+    public static func gemini(key: String, model: String = "gemini-flash-latest") -> OpenAITutor {
         OpenAITutor(
             provider: "gemini",
             endpoint: URL(string: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions")!,

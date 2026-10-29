@@ -8,8 +8,8 @@ import MoeedEngine
 ///     moeed compile <file.pdf> <page> <script.tdp> <out-dir>  check a hand-written or pasted script
 ///     moeed explain <file.pdf> <page> <out-dir>               ask a model to explain the slide
 ///
-/// `explain` picks the model from MOEED_PROVIDER (claude | gemini | github), or else from whichever key is set:
-/// ANTHROPIC_API_KEY, GEMINI_API_KEY, GITHUB_TOKEN. MOEED_MODEL overrides the provider's default model.
+/// `explain` picks the model from MOEED_PROVIDER (claude | gemini), or else from whichever key is set:
+/// ANTHROPIC_API_KEY or GEMINI_API_KEY (a free one comes from Google AI Studio). MOEED_MODEL overrides the provider's default model.
 @main
 struct MoeedCLI {
     static func main() async {
@@ -87,19 +87,16 @@ struct MoeedCLI {
         func value(_ key: String) -> String? { env[key].flatMap { $0.isEmpty ? nil : $0 } }
         let model = value("MOEED_MODEL")
         let provider = value("MOEED_PROVIDER")
-            ?? (value("ANTHROPIC_API_KEY") != nil ? "claude" : value("GEMINI_API_KEY") != nil ? "gemini" : "github")
+            ?? (value("ANTHROPIC_API_KEY") != nil ? "claude" : "gemini")
         switch provider {
         case "claude":
             guard let key = value("ANTHROPIC_API_KEY") else { throw TutorError.api("set ANTHROPIC_API_KEY") }
             return ClaudeTutor(apiKey: key, model: model ?? ClaudeTutor.defaultModel)
         case "gemini":
-            guard let key = value("GEMINI_API_KEY") else { throw TutorError.api("set GEMINI_API_KEY") }
+            guard let key = value("GEMINI_API_KEY") else { throw TutorError.api("set GEMINI_API_KEY (free from Google AI Studio) or ANTHROPIC_API_KEY") }
             return model.map { OpenAITutor.gemini(key: key, model: $0) } ?? OpenAITutor.gemini(key: key)
-        case "github":
-            guard let token = value("GITHUB_TOKEN") else { throw TutorError.api("set GITHUB_TOKEN (or ANTHROPIC_API_KEY / GEMINI_API_KEY)") }
-            return model.map { OpenAITutor.github(token: token, model: $0) } ?? OpenAITutor.github(token: token)
         default:
-            throw TutorError.api("unknown MOEED_PROVIDER \(provider): use claude, gemini or github")
+            throw TutorError.api("unknown MOEED_PROVIDER \(provider): use claude or gemini")
         }
     }
 

@@ -32,14 +32,13 @@ jobs:
       - name: Ground the sample slide
         run: swift run --package-path Packages/MoeedKit moeed ground snapshots/sample-slide.pdf 1 snapshots/engine
 
-      # A live run of the whole engine on GitHub Models, which is free (rate-limited) with the built-in token.
-      # Not on pull requests. Each step of the lesson the model writes is rendered in the player.
+      # A live run of the whole engine on Gemini Flash's free tier (rate-limited), once the GEMINI_API_KEY
+      # secret is set. Not on pull requests. Each step of the lesson the model writes is rendered in the player.
       - name: Explain the sample slide with a free model
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && env.GEMINI_API_KEY != ''
         continue-on-error: true
         env:
-          MOEED_PROVIDER: github
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MOEED_PROVIDER: gemini
         run: |
           swift run --package-path Packages/MoeedKit moeed explain snapshots/sample-slide.pdf 1 snapshots/engine | tee snapshots/engine/p1-explain.log
           swift run --package-path Packages/MoeedKit Snapshots "$GITHUB_WORKSPACE/snapshots/engine" --lesson snapshots/engine/p1-lesson.json

@@ -106,14 +106,14 @@ final class GroundingTests: XCTestCase {
     }
 
     func testTheOpenAIFormatCarriesTheSlideAsADataURL() throws {
-        let tutor = OpenAITutor.github(token: "test-token", model: "openai/test")
-        XCTAssertEqual(tutor.name, "github/openai/test")
+        let tutor = OpenAITutor.gemini(key: "test-key", model: "gemini-test")
+        XCTAssertEqual(tutor.name, "gemini/gemini-test")
         let request = tutor.makeRequest(system: "sys", image: Data([1, 2, 3]), text: "hello")
-        XCTAssertEqual(request.url?.host, "models.github.ai")
-        XCTAssertEqual(request.value(forHTTPHeaderField: "authorization"), "Bearer test-token")
+        XCTAssertEqual(request.url?.host, "generativelanguage.googleapis.com")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "authorization"), "Bearer test-key")
 
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
-        XCTAssertEqual(body["model"] as? String, "openai/test")
+        XCTAssertEqual(body["model"] as? String, "gemini-test")
         XCTAssertEqual(body["stream"] as? Bool, true)
         let messages = try XCTUnwrap(body["messages"] as? [[String: Any]])
         XCTAssertEqual(messages.first?["role"] as? String, "system")

@@ -15,7 +15,7 @@ public enum TutorError: Error, CustomStringConvertible {
 
 /// A vision model that reads the marked-up slide and writes the TDP-L script, streamed as it's written.
 public protocol TutorModel: Sendable {
-    /// Shown in logs, e.g. "github/openai/gpt-4.1-mini".
+    /// Shown in logs, e.g. "gemini/gemini-flash-latest".
     var name: String { get }
     func stream(system: String, image png: Data, text: String) -> AsyncThrowingStream<String, Error>
 }
