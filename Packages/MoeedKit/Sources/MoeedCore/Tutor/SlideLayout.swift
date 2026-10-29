@@ -177,11 +177,8 @@ public enum SlideLayout {
     // MARK: Lines and blocks
 
     static func lines(_ words: [WordBox]) -> [Line] {
-        let sorted = words.sorted { a, b in
-            let ya = a.box.y.rounded()
-            let yb = b.box.y.rounded()
-            return ya != yb ? ya < yb : a.box.x < b.box.x
-        }
+        // Left to right across the whole page, so each word only has to reach back to the line on its left.
+        let sorted = words.sorted { ($0.box.x, $0.box.y) < ($1.box.x, $1.box.y) }
         var groups: [[WordBox]] = []
         var boxes: [SlideRect] = []
         for word in sorted {
@@ -190,7 +187,6 @@ public enum SlideLayout {
                 let b = boxes[i]
                 return abs(b.y - word.box.y) < max(3, size * 0.35)
                     && word.box.x - b.maxX < size * 2.2
-                    && word.box.x >= b.x - 2
             }
             if let i = match {
                 groups[i].append(word)

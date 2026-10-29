@@ -49,20 +49,23 @@ public enum PDFGrounder {
     /// Words with their boxes, in slide space (top-left origin). A word breaks at spaces,
     /// at a jump to another line, or at a gap wider than half the letter height.
     static func words(on page: PDFPage, box: CGRect) -> [WordBox] {
+        guard let text = page.string else { return [] }
+        let units = Array(text.utf16)
+        let count = min(units.count, page.numberOfCharacters)
         var words: [WordBox] = []
-        var current = ""
+        var current: [UInt16] = []
         var bounds = CGRect.null
         var last = CGRect.null
         var start = 0
 
         func flush() {
             defer {
-                current = ""
+                current = []
                 bounds = .null
                 last = .null
             }
             guard !current.isEmpty, !bounds.isNull else { return }
-            let string = current
+            let string = String(decoding: current, as: UTF16.self)
                 .precomposedStringWithCompatibilityMapping
                 .filter { !SlideLayout.isBullet($0) }
             guard !string.isEmpty else { return }
@@ -73,14 +76,17 @@ public enum PDFGrounder {
             words.append(WordBox(string, rect, order: start))
         }
 
-        // `page.string` can hold characters PDFKit made up (line breaks, spaces) that have no index of their own,
-        // so each character is read through its own index to keep text and bounds lined up.
-        for index in 0..<page.numberOfCharacters {
-            let char = page.selection(for: NSRange(location: index, length: 1))?.string ?? ""
+        for index in 0..<count {
+            let unit = units[index]
+            let isSurrogate = (0xD800...0xDFFF).contains(unit)
+            let isSpace = Unicode.Scalar(unit).map { CharacterSet.whitespacesAndNewlines.contains($0) } ?? false
             let rect = page.characterBounds(at: index)
-            let isSpace = char.isEmpty || char.allSatisfy { $0.isWhitespace }
-            if isSpace || rect.isNull || rect.width <= 0 || rect.height <= 0 {
+            if isSpace || (!isSurrogate && (rect.isNull || rect.width <= 0 || rect.height <= 0)) {
                 flush()
+                continue
+            }
+            if isSurrogate && (rect.width <= 0 || rect.height <= 0) {
+                current.append(unit)
                 continue
             }
             if !last.isNull {
@@ -89,7 +95,7 @@ public enum PDFGrounder {
                 if gap > height * 0.5 || abs(rect.midY - last.midY) > height * 0.5 { flush() }
             }
             if current.isEmpty { start = index }
-            current += char
+            current.append(unit)
             bounds = bounds.union(rect)
             last = rect
         }
