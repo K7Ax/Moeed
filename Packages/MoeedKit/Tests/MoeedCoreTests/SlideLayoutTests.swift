@@ -7,14 +7,14 @@ final class SlideLayoutTests: XCTestCase {
     /// A line of words laid out left to right, half an em per letter.
     private func line(_ text: String, x: Double, y: Double, size: Double) -> [WordBox] {
         var cursor = x
-        return text.split(separator: " ").map { part in
+        var words: [WordBox] = []
+        for part in text.components(separatedBy: " ") {
             let width = Double(part.count) * size * 0.5
-            defer {
-                cursor += width + size * 0.3
-                order += 1
-            }
-            return WordBox(String(part), SlideRect(cursor, y, width, size), order: order)
+            words.append(WordBox(part, SlideRect(cursor, y, width, size), order: order))
+            cursor += width + size * 0.3
+            order += 1
         }
+        return words
     }
 
     private func sineSlide() -> RegionMap {
