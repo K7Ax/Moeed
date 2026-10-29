@@ -54,8 +54,7 @@ public struct OpenAITutor: TutorModel {
                     var raw = ""
                     var pieces = 0
                     for try await line in bytes.lines {
-                        if raw.count < 1500 { raw += line + "
-" }
+                        if raw.count < 1500 { raw += line + "\n" }
                         guard line.hasPrefix("data:") else { continue }
                         let payload = line.dropFirst(5).trimmingCharacters(in: .whitespaces)
                         if payload == "[DONE]" { break }
