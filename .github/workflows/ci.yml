@@ -32,13 +32,16 @@ jobs:
       - name: Ground the sample slide
         run: swift run --package-path Packages/MoeedKit moeed ground snapshots/sample-slide.pdf 1 snapshots/engine
 
-      # Asking Claude costs a little, so it runs only when started by hand (Actions → CI → Run workflow)
-      # and only if the ANTHROPIC_API_KEY secret is set. Each step of its lesson is rendered in the player.
-      - name: Explain the sample slide with Claude
-        if: github.event_name == 'workflow_dispatch' && env.ANTHROPIC_API_KEY != ''
+      # A live run of the whole engine on GitHub Models, which is free (rate-limited) with the built-in token.
+      # Not on pull requests. Each step of the lesson the model writes is rendered in the player.
+      - name: Explain the sample slide with a free model
+        if: github.event_name != 'pull_request'
         continue-on-error: true
+        env:
+          MOEED_PROVIDER: github
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          swift run --package-path Packages/MoeedKit moeed explain snapshots/sample-slide.pdf 1 snapshots/engine
+          swift run --package-path Packages/MoeedKit moeed explain snapshots/sample-slide.pdf 1 snapshots/engine | tee snapshots/engine/p1-explain.log
           swift run --package-path Packages/MoeedKit Snapshots "$GITHUB_WORKSPACE/snapshots/engine" --lesson snapshots/engine/p1-lesson.json
 
       - name: Upload screens

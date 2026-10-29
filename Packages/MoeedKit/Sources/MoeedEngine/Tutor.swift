@@ -13,9 +13,16 @@ public enum TutorError: Error, CustomStringConvertible {
     }
 }
 
+/// A vision model that reads the marked-up slide and writes the TDP-L script, streamed as it's written.
+public protocol TutorModel: Sendable {
+    /// Shown in logs, e.g. "github/openai/gpt-4.1-mini".
+    var name: String { get }
+    func stream(system: String, image png: Data, text: String) -> AsyncThrowingStream<String, Error>
+}
+
 /// Claude, through the Messages API, streaming its answer as it's written.
 /// The key is the student's own (kept in the Keychain by the app, or an environment variable for the CLI).
-public struct ClaudeTutor: Sendable {
+public struct ClaudeTutor: TutorModel {
     public static let defaultModel = "claude-sonnet-5-5"
 
     public var apiKey: String
@@ -27,6 +34,8 @@ public struct ClaudeTutor: Sendable {
         self.model = model
         self.maxTokens = maxTokens
     }
+
+    public var name: String { "anthropic/\(model)" }
 
     /// The reply's text, piece by piece.
     public func stream(system: String, image png: Data, text: String) -> AsyncThrowingStream<String, Error> {
@@ -108,7 +117,7 @@ public enum Explainer {
         _ slide: GroundedSlide,
         deckTitle: String,
         deckPageCount: Int,
-        with tutor: ClaudeTutor
+        with tutor: any TutorModel
     ) -> AsyncThrowingStream<LessonDraft, Error> {
         let png = SetOfMarks.draw(slide)?.pngData() ?? slide.image.pngData() ?? Data()
         let request = TutorPrompt.request(map: slide.map, page: slide.page, deckTitle: deckTitle, deckPageCount: deckPageCount)

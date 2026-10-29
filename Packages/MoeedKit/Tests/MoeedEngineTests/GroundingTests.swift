@@ -104,4 +104,23 @@ final class GroundingTests: XCTestCase {
         XCTAssertEqual(source["data"], Data([1, 2, 3]).base64EncodedString())
         XCTAssertEqual(content.last?["text"] as? String, "hello")
     }
+
+    func testTheOpenAIFormatCarriesTheSlideAsADataURL() throws {
+        let tutor = OpenAITutor.github(token: "test-token", model: "openai/test")
+        XCTAssertEqual(tutor.name, "github/openai/test")
+        let request = tutor.makeRequest(system: "sys", image: Data([1, 2, 3]), text: "hello")
+        XCTAssertEqual(request.url?.host, "models.github.ai")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "authorization"), "Bearer test-token")
+
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+        XCTAssertEqual(body["model"] as? String, "openai/test")
+        XCTAssertEqual(body["stream"] as? Bool, true)
+        let messages = try XCTUnwrap(body["messages"] as? [[String: Any]])
+        XCTAssertEqual(messages.first?["role"] as? String, "system")
+        XCTAssertEqual(messages.first?["content"] as? String, "sys")
+        let content = try XCTUnwrap(messages.last?["content"] as? [[String: Any]])
+        let image = try XCTUnwrap(content.first?["image_url"] as? [String: String])
+        XCTAssertEqual(image["url"], "data:image/png;base64," + Data([1, 2, 3]).base64EncodedString())
+        XCTAssertEqual(content.last?["text"] as? String, "hello")
+    }
 }

@@ -6,7 +6,10 @@ import MoeedEngine
 ///
 ///     moeed ground  <file.pdf> <page> <out-dir>              regions, slide image, Set-of-Marks image, prompt
 ///     moeed compile <file.pdf> <page> <script.tdp> <out-dir>  check a hand-written or pasted script
-///     moeed explain <file.pdf> <page> <out-dir>               ask Claude (needs ANTHROPIC_API_KEY)
+///     moeed explain <file.pdf> <page> <out-dir>               ask a model to explain the slide
+///
+/// `explain` picks the model from MOEED_PROVIDER (claude | gemini | github), or else from whichever key is set:
+/// ANTHROPIC_API_KEY, GEMINI_API_KEY, GITHUB_TOKEN. MOEED_MODEL overrides the provider's default model.
 @main
 struct MoeedCLI {
     static func main() async {
@@ -58,12 +61,9 @@ struct MoeedCLI {
     }
 
     static func explain(pdf: String, page: String, out: String) async throws {
-        guard let key = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"], !key.isEmpty else {
-            throw TutorError.api("set ANTHROPIC_API_KEY first")
-        }
+        let tutor = try tutorFromEnvironment()
         let (slide, dir, name) = try load(pdf, page, out)
-        let model = ProcessInfo.processInfo.environment["MOEED_MODEL"] ?? ClaudeTutor.defaultModel
-        let tutor = ClaudeTutor(apiKey: key, model: model)
+        print("asking \(tutor.name)")
         let started = Date()
         var printed = 0
         var last: LessonDraft?
@@ -80,6 +80,27 @@ struct MoeedCLI {
         try Data(last.script.utf8).write(to: dir.appendingPathComponent("\(name).tdp"))
         try write(last.lesson, to: dir.appendingPathComponent("\(name)-lesson.json"))
         printReport(last.report, steps: last.lesson.steps.count)
+    }
+
+    static func tutorFromEnvironment() throws -> any TutorModel {
+        let env = ProcessInfo.processInfo.environment
+        func value(_ key: String) -> String? { env[key].flatMap { $0.isEmpty ? nil : $0 } }
+        let model = value("MOEED_MODEL")
+        let provider = value("MOEED_PROVIDER")
+            ?? (value("ANTHROPIC_API_KEY") != nil ? "claude" : value("GEMINI_API_KEY") != nil ? "gemini" : "github")
+        switch provider {
+        case "claude":
+            guard let key = value("ANTHROPIC_API_KEY") else { throw TutorError.api("set ANTHROPIC_API_KEY") }
+            return ClaudeTutor(apiKey: key, model: model ?? ClaudeTutor.defaultModel)
+        case "gemini":
+            guard let key = value("GEMINI_API_KEY") else { throw TutorError.api("set GEMINI_API_KEY") }
+            return model.map { OpenAITutor.gemini(key: key, model: $0) } ?? OpenAITutor.gemini(key: key)
+        case "github":
+            guard let token = value("GITHUB_TOKEN") else { throw TutorError.api("set GITHUB_TOKEN (or ANTHROPIC_API_KEY / GEMINI_API_KEY)") }
+            return model.map { OpenAITutor.github(token: token, model: $0) } ?? OpenAITutor.github(token: token)
+        default:
+            throw TutorError.api("unknown MOEED_PROVIDER \(provider): use claude, gemini or github")
+        }
     }
 
     static func deckTitle(_ pdf: String) -> String {
