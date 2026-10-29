@@ -115,6 +115,11 @@ public enum Gallery {
         func player(_ name: String, _ model: PlayerModel, size: CGSize = landscape) -> GalleryEntry {
             entry(name, RootView(route: .player, player: model), size: size)
         }
+        // The same lesson, compiled from the TDP-L script the way a model's answer would be.
+        let compiled = LessonCompiler.compile(
+            source: Samples.sineScript, map: Samples.sineRegions,
+            page: page.id, deckTitle: page.deckTitle, deckPageCount: page.deckPageCount
+        ).page
         return [
             home("00-home-light", .light),
             home("00-home-dark", .dark),
@@ -129,6 +134,9 @@ public enum Gallery {
             player("09-player-portrait", PlayerModel.settled(page, step: 4, revealed: 1), size: portrait),
             player("09-ask-portrait", PlayerModel.settled(page, step: 3, picked: "zero"), size: portrait),
             player("10-summary-spotlight", PlayerModel.settled(page, step: 8)),
+            player("11-compiled-step", PlayerModel.settled(compiled, step: 4, revealed: 1)),
+            player("11-compiled-ask", PlayerModel.settled(compiled, step: 3, picked: "b")),
+            player("11-compiled-measure", PlayerModel.settled(compiled, step: 6, revealed: 2)),
             foundation(.light),
             foundation(.dark),
             alternative("90-home-a", HomeView(now: friday)),
@@ -137,6 +145,18 @@ public enum Gallery {
             entry("07-review", RootView(route: .review)),
             entry("08-import", RootView(route: .importing)),
         ]
+    }
+}
+
+public extension Gallery {
+    /// Every step of a lesson the engine wrote, as the player shows it once the step has played.
+    @MainActor
+    static func lesson(_ page: SlidePage, prefix: String) -> [GalleryEntry] {
+        page.steps.indices.map { index in
+            let model = PlayerModel.settled(page, step: index)
+            let name = "\(prefix)-\(String(format: "%02d", index + 1))"
+            return GalleryEntry(name: name, size: landscape, view: AnyView(RootView(route: .player, player: model)))
+        }
     }
 }
 

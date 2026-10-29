@@ -17,6 +17,7 @@ jobs:
     env:
       APPETIZE_API_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
       APPETIZE_PUBLIC_KEY: ${{ vars.APPETIZE_PUBLIC_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +26,20 @@ jobs:
 
       - name: Render screens
         run: swift run --package-path Packages/MoeedKit Snapshots "$GITHUB_WORKSPACE/snapshots"
+
+      # The engine reads the sample slide like a real lecture: regions from the PDF's text layer,
+      # figures from its ink, and the Set-of-Marks image the model sees.
+      - name: Ground the sample slide
+        run: swift run --package-path Packages/MoeedKit moeed ground snapshots/sample-slide.pdf 1 snapshots/engine
+
+      # Asking Claude costs a little, so it runs only when started by hand (Actions → CI → Run workflow)
+      # and only if the ANTHROPIC_API_KEY secret is set. Each step of its lesson is rendered in the player.
+      - name: Explain the sample slide with Claude
+        if: github.event_name == 'workflow_dispatch' && env.ANTHROPIC_API_KEY != ''
+        continue-on-error: true
+        run: |
+          swift run --package-path Packages/MoeedKit moeed explain snapshots/sample-slide.pdf 1 snapshots/engine
+          swift run --package-path Packages/MoeedKit Snapshots "$GITHUB_WORKSPACE/snapshots/engine" --lesson snapshots/engine/p1-lesson.json
 
       - name: Upload screens
         uses: actions/upload-artifact@v4
