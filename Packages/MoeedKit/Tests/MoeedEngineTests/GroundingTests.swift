@@ -51,6 +51,8 @@ final class GroundingTests: XCTestCase {
     func testTheTextLayerBecomesRegionsInSlideSpace() throws {
         let slide = try PDFGrounder.ground(makeSlide(), page: 1)
         let map = slide.map
+        print("WORDS", slide.words.map { "\($0.text)@\(Int($0.box.x)),\(Int($0.box.y)),\(Int($0.box.w))x\(Int($0.box.h))#\($0.order)" })
+        print("LISTING", map.listing)
         XCTAssertEqual(map.width, 800)
         XCTAssertEqual(map.title, "Reading the Graph")
 
