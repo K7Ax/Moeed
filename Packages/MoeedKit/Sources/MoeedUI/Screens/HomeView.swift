@@ -88,7 +88,7 @@ public struct HomeView: View {
             .rise(0.18)
             VStack(alignment: .leading, spacing: 0) {
                 SectionHead(Samples.course.name, action: "عرض الكل") { select(.library) }
-                Shelf(size: wide ? 164 : 136, width: width, open: play)
+                CoverShelf(size: wide ? 164 : 136, width: width, open: play)
             }
             .rise(0.26)
             VStack(alignment: .leading, spacing: 0) {
@@ -482,7 +482,7 @@ private struct Day: View {
 
 // MARK: - The shelf
 
-private struct Shelf: View {
+private struct CoverShelf: View {
     let size: CGFloat
     let width: CGFloat
     let open: () -> Void
