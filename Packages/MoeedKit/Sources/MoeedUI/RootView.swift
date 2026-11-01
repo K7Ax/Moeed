@@ -20,6 +20,7 @@ public struct RootView: View {
     @State private var router: AppRouter
     @State private var player: PlayerModel
     @State private var library: LibraryModel
+    @Environment(\.scenePhase) private var scenePhase
     private let startExplaining: Bool
     private let now: Date?
 
@@ -28,7 +29,7 @@ public struct RootView: View {
                 startExplaining: Bool = false, now: Date? = nil) {
         _router = State(initialValue: AppRouter(route: route))
         _player = State(initialValue: player ?? PlayerModel(page: Samples.sinePage))
-        _library = State(initialValue: library ?? .onDevice())
+        _library = State(initialValue: library ?? .device)
         self.startExplaining = startExplaining
         self.now = now
     }
@@ -57,8 +58,17 @@ public struct RootView: View {
         .environment(router)
         .environment(\.locale, Locale(identifier: "ar@numbers=latn"))
         .preferredColorScheme(scheme)
-        // The weekly sync runs when the app opens, whichever screen it opens on.
+        // The weekly sync runs when the app opens, whichever screen it opens on,
+        // and iOS is asked to wake the app for the next one when it goes to the background.
         .task { await library.syncIfDue() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background { library.scheduleNext() }
+        }
+        .onChange(of: library.wantsFocus) { _, wants in
+            guard wants else { return }
+            library.wantsFocus = false
+            router.route = .library
+        }
     }
 
     /// Home and the library follow the system, the player is always dark, and the paper screens are still light.

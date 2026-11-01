@@ -16,6 +16,12 @@ targets:
     dependencies:
       - package: MoeedKit
         product: MoeedUI
+    # Merged with the generated Info.plist: the background refresh that runs the weekly Blackboard sync.
+    info:
+      path: App/Info.plist
+      properties:
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [io.github.k7ax.moeed.sync]
     scheme: {}
     settings:
       base:

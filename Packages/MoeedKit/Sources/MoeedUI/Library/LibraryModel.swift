@@ -30,6 +30,8 @@ public final class LibraryModel {
     /// Files added or changed by a sync and not opened yet.
     public internal(set) var unseen: Set<String>
     public var showSignIn = false
+    /// Set when the student taps a library notification: the app opens on the library.
+    public var wantsFocus = false
 
     let base: URL
     let root: URL
@@ -40,6 +42,12 @@ public final class LibraryModel {
     private let vault = SessionVault()
     private static let unseenKey = "library.unseen"
     private static let linkedKey = "library.linked"
+    private static let nextSyncKey = "library.nextSync"
+    private static let toldSignedOutKey = "library.toldSignedOut"
+
+    /// As asked: Blackboard is read once a week. After a sync that couldn't finish, again within the hour.
+    static let week: TimeInterval = 7 * 24 * 3600
+    static let retry: TimeInterval = 3600
 
     init(phase: Phase, shelf: Shelf, lastSync: Date?, unseen: Set<String>, progress: Double? = nil,
          base: URL = LibraryModel.ksu, root: URL, live: Bool, now: Date? = nil) {
@@ -54,8 +62,10 @@ public final class LibraryModel {
         self.fixedNow = now
     }
 
-    /// The library on this device.
-    public static func onDevice() -> LibraryModel {
+    /// The library on this device, shared by the screen and the background sync.
+    public static let device = LibraryModel.onDevice()
+
+    static func onDevice() -> LibraryModel {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let unseen = Set(UserDefaults.standard.stringArray(forKey: unseenKey) ?? [])
         let model = LibraryModel(
@@ -89,7 +99,10 @@ public final class LibraryModel {
         guard live else { return }
         vault.save(cookies)
         UserDefaults.standard.set(true, forKey: Self.linkedKey)
+        UserDefaults.standard.set(false, forKey: Self.toldSignedOutKey)
         phase = .idle
+        // The moment the student has just asked for new files is the moment to ask about telling them.
+        BackgroundSync.askToNotify()
         Task { await sync() }
     }
 
@@ -103,14 +116,30 @@ public final class LibraryModel {
 
     // MARK: Sync
 
-    /// Once a week on its own, as asked; the button syncs any time.
+    /// When the next sync is due; nil until the first one.
+    var nextSync: Date? {
+        get {
+            let stamp = UserDefaults.standard.double(forKey: Self.nextSyncKey)
+            return stamp > 0 ? Date(timeIntervalSince1970: stamp) : nil
+        }
+        set { UserDefaults.standard.set(newValue?.timeIntervalSince1970 ?? 0, forKey: Self.nextSyncKey) }
+    }
+
+    /// On opening the app: syncs if it's due. The button syncs any time.
     public func syncIfDue() async {
         guard live, phase == .idle else { return }
-        if let lastSync, now.timeIntervalSince(lastSync) < 7 * 24 * 3600 { return }
+        if let nextSync, now < nextSync { return }
         await sync()
     }
 
-    public func sync() async {
+    /// Asks iOS to wake the app for the next sync (it decides exactly when).
+    public func scheduleNext() {
+        guard live, isLinked else { return }
+        BackgroundSync.schedule(at: nextSync ?? now)
+    }
+
+    /// `background`: woken by iOS while the app is closed, so what arrived is told in a notification.
+    public func sync(background: Bool = false) async {
         guard live, !isSyncing else { return }
         let cookies = vault.load()
         guard !cookies.isEmpty else {
@@ -128,10 +157,22 @@ public final class LibraryModel {
             unseen.formUnion(report.new + report.updated)
             saveUnseen()
             phase = .idle
+            nextSync = now.addingTimeInterval(report.failed.isEmpty ? Self.week : Self.retry)
+            if background, let news = SyncNews.message(new: report.new, updated: report.updated) {
+                BackgroundSync.notify(news)
+            }
         } catch BlackboardError.signedOut {
             phase = .signedOut
+            nextSync = now.addingTimeInterval(Self.week)
+            // Said once; the library screen keeps saying it until the student signs in again.
+            if background, !UserDefaults.standard.bool(forKey: Self.toldSignedOutKey) {
+                UserDefaults.standard.set(true, forKey: Self.toldSignedOutKey)
+                BackgroundSync.notify(.init(title: "بلاك بورد يبيك تدخل مرة ثانية", body: "انتهت الجلسة، فوقفت المزامنة. افتح مُعيد وادخل، ويكمل من حيث وقف."))
+            }
         } catch {
-            phase = .failed(Self.words(for: error))
+            // iOS ending the background time is not a failure to show; the next try is within the hour.
+            phase = Task.isCancelled ? .idle : .failed(Self.words(for: error))
+            nextSync = now.addingTimeInterval(Self.retry)
         }
         // Blackboard may have renewed the session along the way.
         if let renewed = session.configuration.httpCookieStorage?.cookies, !renewed.isEmpty, phase != .signedOut {
@@ -139,6 +180,7 @@ public final class LibraryModel {
         }
         progress = nil
         reload()
+        scheduleNext()
     }
 
     private func show(_ step: LibrarySyncer.Progress) {

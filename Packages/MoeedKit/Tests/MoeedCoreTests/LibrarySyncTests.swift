@@ -139,6 +139,21 @@ final class LibrarySyncTests: XCTestCase {
         XCTAssertEqual(circuits.files[2].gone, true)
     }
 
+    func testOneNotificationSaysWhatArrivedAndWhere() {
+        let term = "الفصل الأول 1448-1449"
+        XCTAssertNil(SyncNews.message(new: [], updated: []))
+        XCTAssertEqual(
+            SyncNews.message(new: ["\(term)/Circuits/Lectures/Chapter 5.pdf"], updated: []),
+            .init(title: "جديد في بلاك بورد", body: "Chapter 5 · Circuits")
+        )
+        XCTAssertEqual(SyncNews.message(new: [], updated: ["\(term)/Circuits/a.pdf", "\(term)/Signals/b.pdf"])?.title, "تحدّث في بلاك بورد")
+        XCTAssertEqual(
+            SyncNews.message(new: ["\(term)/A/1.pdf", "\(term)/B/2.pdf", "\(term)/B/3.pdf"], updated: ["\(term)/C/4.pdf", "\(term)/D/5.pdf"])?.body,
+            "5 ملفات: 2 في B، 1 في A، 1 في C، وغيرها"
+        )
+        XCTAssertEqual(SyncNews.message(new: ["\(term)/A/1.pdf", "\(term)/A/2.pdf"], updated: [])?.body, "ملفين: 2 في A")
+    }
+
     func testNamesAreSafeForTheDisk() {
         XCTAssertEqual(LibrarySync.component("Lab 1/2: AM?"), "Lab 1-2- AM-")
         XCTAssertEqual(LibrarySync.component("..hidden"), "hidden")

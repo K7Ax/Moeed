@@ -6,3 +6,5 @@ DerivedData/
 xcuserdata/
 /snapshots/
 /Build/
+# Written by xcodegen from project.yml
+/App/Info.plist
