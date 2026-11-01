@@ -13,9 +13,10 @@ let package = Package(
     ],
     targets: [
         // Pure Swift: lesson model, timing, sample content, and the tutor's language
-        // (regions, TDP-L parser and validator, compiler, prompt). No Apple frameworks.
+        // (regions, TDP-L parser and validator, compiler, prompt), and the library's sync plan. No Apple frameworks.
         .target(name: "MoeedCore"),
-        // Reads PDFs on the device (PDFKit), draws the Set-of-Marks image, and talks to the model.
+        // Reads PDFs on the device (PDFKit), draws the Set-of-Marks image, talks to the model,
+        // and keeps the lecture library in step with Blackboard (read-only, with the student's own session).
         .target(name: "MoeedEngine", dependencies: ["MoeedCore"]),
         // SwiftUI design system + screens.
         // The bundled faces (IBM Plex Sans Arabic, Brygada 1918) and the logo ship as resources.
