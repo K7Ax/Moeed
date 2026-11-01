@@ -19,13 +19,16 @@ public final class AppRouter {
 public struct RootView: View {
     @State private var router: AppRouter
     @State private var player: PlayerModel
+    @State private var library: LibraryModel
     private let startExplaining: Bool
     private let now: Date?
 
     @MainActor
-    public init(route: AppRouter.Route = .home, player: PlayerModel? = nil, startExplaining: Bool = false, now: Date? = nil) {
+    public init(route: AppRouter.Route = .home, player: PlayerModel? = nil, library: LibraryModel? = nil,
+                startExplaining: Bool = false, now: Date? = nil) {
         _router = State(initialValue: AppRouter(route: route))
         _player = State(initialValue: player ?? PlayerModel(page: Samples.sinePage))
+        _library = State(initialValue: library ?? .onDevice())
         self.startExplaining = startExplaining
         self.now = now
     }
@@ -38,7 +41,8 @@ public struct RootView: View {
                 HomeAskView(now: now ?? Date())
                     .tint(Palette.accent)
             case .library:
-                LibraryView().paper()
+                LibraryView(model: library)
+                    .tint(Palette.accent)
             case .review:
                 ReviewView().paper()
             case .player:
@@ -53,12 +57,14 @@ public struct RootView: View {
         .environment(router)
         .environment(\.locale, Locale(identifier: "ar@numbers=latn"))
         .preferredColorScheme(scheme)
+        // The weekly sync runs when the app opens, whichever screen it opens on.
+        .task { await library.syncIfDue() }
     }
 
-    /// Home follows the system, the player is always dark, and the paper screens are still light.
+    /// Home and the library follow the system, the player is always dark, and the paper screens are still light.
     private var scheme: ColorScheme? {
         switch router.route {
-        case .home: nil
+        case .home, .library: nil
         case .player: .dark
         default: .light
         }
@@ -112,6 +118,9 @@ public enum Gallery {
         func alternative<V: View>(_ name: String, _ view: V) -> GalleryEntry {
             GalleryEntry(name: name, size: landscape, view: AnyView(view.environment(AppRouter(route: .home)).environment(\.colorScheme, .light)))
         }
+        func library(_ name: String, _ model: LibraryModel, _ scheme: ColorScheme = .light, size: CGSize = landscape) -> GalleryEntry {
+            GalleryEntry(name: name, size: size, view: AnyView(RootView(route: .library, library: model).environment(\.colorScheme, scheme)))
+        }
         func player(_ name: String, _ model: PlayerModel, size: CGSize = landscape) -> GalleryEntry {
             entry(name, RootView(route: .player, player: model), size: size)
         }
@@ -141,7 +150,15 @@ public enum Gallery {
             foundation(.dark),
             alternative("90-home-a", HomeView(now: friday)),
             alternative("91-home-b", HomeNoteView(now: friday)),
-            entry("01-library", RootView(route: .library)),
+            library("01-library", .sample(now: friday)),
+            library("01-library-dark", .sample(now: friday), .dark),
+            library("01-library-portrait", .sample(now: friday), size: portrait),
+            library("01-library-link", .sample(.unlinked, now: friday)),
+            library("01-library-syncing", .sample(.syncing("يجيب Chapter 6 - AC Power.pdf"), progress: 0.62, now: friday)),
+            library("01-library-signed-out", .sample(.signedOut, now: friday), .dark),
+            GalleryEntry(name: "01-library-sign-in", size: landscape, view: AnyView(
+                BlackboardSignIn(model: .sample(.unlinked, now: friday)).environment(\.colorScheme, .light)
+            )),
             entry("07-review", RootView(route: .review)),
             entry("08-import", RootView(route: .importing)),
         ]

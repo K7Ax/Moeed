@@ -35,6 +35,18 @@ public enum Blackboard {
         public var name: String?
     }
 
+    /// The signed-in student; reading it is how the app knows the session works.
+    public struct User: Decodable, Sendable {
+        public var id: String
+        public var userName: String?
+        public var name: Name?
+
+        public struct Name: Decodable, Sendable {
+            public var given: String?
+            public var family: String?
+        }
+    }
+
     public struct Content: Decodable, Sendable {
         public var id: String
         public var parentId: String?

@@ -25,6 +25,11 @@ public struct BlackboardClient: Sendable {
         self.session = session
     }
 
+    /// The signed-in student. Succeeds only while the session is alive.
+    public func me() async throws -> Blackboard.User {
+        try await get("/learn/api/public/v1/users/me")
+    }
+
     public func memberships() async throws -> [Blackboard.Membership] {
         try await all("/learn/api/public/v1/users/me/courses?expand=course&limit=100")
     }
@@ -125,6 +130,14 @@ public struct LibrarySyncer: Sendable {
         self.root = root
     }
 
+    /// What a sync is doing now, for the screen to say.
+    public enum Progress: Sendable {
+        /// Reading a subject's contents on Blackboard.
+        case reading(subject: String)
+        /// Fetching file `done + 1` of `total`.
+        case downloading(done: Int, total: Int, name: String)
+    }
+
     public struct Report: Sendable {
         /// Relative paths.
         public var new: [String] = []
@@ -138,12 +151,13 @@ public struct LibrarySyncer: Sendable {
     }
 
     /// Everything Blackboard has for the subjects open now, without downloading anything.
-    public func scan() async throws -> (files: [RemoteFile], skipped: [(course: String, reason: String)]) {
+    public func scan(progress: @Sendable (Progress) -> Void = { _ in }) async throws -> (files: [RemoteFile], skipped: [(course: String, reason: String)]) {
         var terms: [String: String] = [:]
         var files: [RemoteFile] = []
         var skipped: [(course: String, reason: String)] = []
         for subject in Blackboard.subjects(try await client.memberships()) {
             let term = try await termName(subject.termId, known: &terms)
+            progress(.reading(subject: subject.name))
             for course in subject.courseIds {
                 do {
                     for found in Blackboard.files(in: try await client.contents(of: course)) {
@@ -172,13 +186,15 @@ public struct LibrarySyncer: Sendable {
         return (files, skipped)
     }
 
-    public func sync(now: Date = Date()) async throws -> Report {
+    public func sync(now: Date = Date(), progress: @Sendable (Progress) -> Void = { _ in }) async throws -> Report {
         var manifest = loadManifest()
-        let (remote, skipped) = try await scan()
+        let (remote, skipped) = try await scan(progress: progress)
         let plan = LibrarySync.plan(remote, against: manifest)
         var report = Report(unchanged: plan.unchanged, skipped: skipped)
 
-        for (item, isNew) in plan.new.map({ ($0, true) }) + plan.updated.map({ ($0, false) }) {
+        let fetch = plan.new.map { ($0, true) } + plan.updated.map { ($0, false) }
+        for (done, (item, isNew)) in fetch.enumerated() {
+            progress(.downloading(done: done, total: fetch.count, name: item.file.fileName))
             do {
                 try await client.download(item.file.source, to: root.appendingPathComponent(item.path))
                 LibrarySync.record(item, in: &manifest)

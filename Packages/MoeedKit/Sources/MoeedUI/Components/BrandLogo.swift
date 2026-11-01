@@ -21,12 +21,5 @@ public struct BrandLogo: View {
         .accessibilityHidden(true)
     }
 
-    static let image: Image? = {
-        guard let url = Bundle.module.url(forResource: "Logo", withExtension: "png", subdirectory: "Brand") else { return nil }
-        #if canImport(UIKit)
-        return UIImage(contentsOfFile: url.path).map { Image(uiImage: $0) }
-        #else
-        return NSImage(contentsOf: url).map { Image(nsImage: $0) }
-        #endif
-    }()
+    static var image: Image? { Bundled.logo }
 }

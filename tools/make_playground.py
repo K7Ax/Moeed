@@ -1,11 +1,14 @@
 """Package Moeed as a Swift Playgrounds app (Moeed.swiftpm) so it can run on an iPad without a Mac.
 
 Usage: python tools/make_playground.py
-Reads:  Packages/MoeedKit/Sources/{MoeedCore,MoeedUI} (with MoeedUI's bundled fonts), App/, Design/logo.png (optional)
-Writes: App/Assets.xcassets (when a logo exists), Build/Moeed.swiftpm, Build/Moeed.swiftpm.zip
+Reads:  Packages/MoeedKit/Sources/{MoeedCore,MoeedEngine,MoeedUI} (with MoeedUI's fonts and logo), App/,
+        Design/logo.png (optional, for a sharper app icon)
+Writes: Build/Moeed.swiftpm, Build/Moeed.swiftpm.zip
 
 Playgrounds builds one module, so the package's sources are copied side by side
-and the cross-module imports are dropped.
+and the cross-module imports are dropped. An app package has no `Bundle.module`, so the
+fonts and the logo go into its asset catalog, and MoeedUI's Bundled.swift is swapped for
+tools/playground/Bundled.swift, which reads them from there.
 """
 
 import json
@@ -17,9 +20,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES = ROOT / "Packages" / "MoeedKit" / "Sources"
 LOGO = ROOT / "Design" / "logo.png"
+RESOURCES = SOURCES / "MoeedUI" / "Resources"
+PLAYGROUND = ROOT / "tools" / "playground"
 OUT = ROOT / "Build" / "Moeed.swiftpm"
 
-MODULE_IMPORT = re.compile(r"^import (MoeedCore|MoeedUI)\s*$", re.MULTILINE)
+MODULE_IMPORT = re.compile(r"^import (MoeedCore|MoeedEngine|MoeedUI)\s*$", re.MULTILINE)
 
 PACKAGE = """// swift-tools-version: 5.9
 
@@ -42,7 +47,7 @@ let package = Package(
             displayVersion: "0.1",
             bundleVersion: "1",
             appIcon: __ICON__,
-            accentColor: .presetColor(.pink),
+            accentColor: .presetColor(.teal),
             supportedDeviceFamilies: [
                 .pad,
                 .phone
@@ -58,11 +63,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: ".",
-            resources: [
-                .copy("Resources/Fonts"),
-                .copy("Resources/Brand")
-            ]
+            path: "."
         )
     ]
 )
@@ -74,18 +75,49 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
-def build_assets(catalog: Path) -> None:
-    """AppIcon (1024, no alpha) and a tightly cropped Logo for in-app use."""
-    from PIL import Image, ImageChops
-
-    source = Image.open(LOGO).convert("RGBA")
-    white = Image.new("RGBA", source.size, (255, 255, 255, 255))
-    flat = Image.alpha_composite(white, source).convert("RGB")
-
-    if catalog.exists():
-        shutil.rmtree(catalog)
+def build_assets(catalog: Path) -> list[str]:
+    """AppIcon, the Logo image and one data set per face. Returns the faces' names."""
     write_json(catalog / "Contents.json", {"info": {"author": "xcode", "version": 1}})
 
+    faces = []
+    for font in sorted((RESOURCES / "Fonts").glob("*.ttf")):
+        folder = catalog / f"{font.stem}.dataset"
+        folder.mkdir(parents=True)
+        shutil.copy(font, folder / font.name)
+        write_json(folder / "Contents.json", {
+            "data": [{"filename": font.name, "idiom": "universal", "universal-type-identifier": "public.truetype-ttf-font"}],
+            "info": {"author": "xcode", "version": 1},
+        })
+        faces.append(font.stem)
+    # The faces' licences travel with them (SIL OFL).
+    for licence in sorted((RESOURCES / "Fonts").glob("*.txt")):
+        folder = catalog / f"{licence.stem}.dataset"
+        folder.mkdir(parents=True)
+        shutil.copy(licence, folder / licence.name)
+        write_json(folder / "Contents.json", {
+            "data": [{"filename": licence.name, "idiom": "universal", "universal-type-identifier": "public.plain-text"}],
+            "info": {"author": "xcode", "version": 1},
+        })
+
+    logo_dir = catalog / "Logo.imageset"
+    logo_dir.mkdir(parents=True)
+    shutil.copy(RESOURCES / "Brand" / "Logo.png", logo_dir / "Logo.png")
+    write_json(logo_dir / "Contents.json", {
+        "images": [{"filename": "Logo.png", "idiom": "universal"}],
+        "info": {"author": "xcode", "version": 1},
+    })
+    return faces
+
+
+def build_icon(catalog: Path) -> bool:
+    """AppIcon (1024, no alpha) from the full logo if there is one, else from the bundled mark."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return False
+    source = Image.open(LOGO if LOGO.exists() else RESOURCES / "Brand" / "Logo.png").convert("RGBA")
+    white = Image.new("RGBA", source.size, (255, 255, 255, 255))
+    flat = Image.alpha_composite(white, source).convert("RGB")
     side = max(flat.size)
     square = Image.new("RGB", (side, side), (255, 255, 255))
     square.paste(flat, ((side - flat.width) // 2, (side - flat.height) // 2))
@@ -96,60 +128,47 @@ def build_assets(catalog: Path) -> None:
         "images": [{"filename": "AppIcon.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"}],
         "info": {"author": "xcode", "version": 1},
     })
-
-    # Crop the white margin so the mark fills the sidebar tile, then keep a little air.
-    diff = ImageChops.difference(flat, Image.new("RGB", flat.size, (255, 255, 255)))
-    box = diff.point(lambda v: 255 if v > 12 else 0).getbbox() or (0, 0, flat.width, flat.height)
-    mark = flat.crop(box)
-    side = int(max(mark.size) * 1.16)
-    tile = Image.new("RGB", (side, side), (255, 255, 255))
-    tile.paste(mark, ((side - mark.width) // 2, (side - mark.height) // 2))
-    logo_dir = catalog / "Logo.imageset"
-    logo_dir.mkdir(parents=True)
-    tile.resize((360, 360), Image.LANCZOS).save(logo_dir / "Logo.png")
-    write_json(logo_dir / "Contents.json", {
-        "images": [{"filename": "Logo.png", "idiom": "universal"}],
-        "info": {"author": "xcode", "version": 1},
-    })
+    return True
 
 
 def main() -> int:
-    has_logo = LOGO.exists()
-    if has_logo:
-        build_assets(ROOT / "App" / "Assets.xcassets")
-    else:
-        print(f"note: no logo at {LOGO.relative_to(ROOT)}, using a placeholder icon")
-
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
 
     groups = {
         "Core": SOURCES / "MoeedCore",
+        "Engine": SOURCES / "MoeedEngine",
         "UI": SOURCES / "MoeedUI",
         "App": ROOT / "App",
     }
+    catalog = OUT / "Assets.xcassets"
+    faces = build_assets(catalog)
+    icon = '.asset("AppIcon")' if build_icon(catalog) else ".placeholder(icon: .pencil)"
+
+    # One module can't hold two files with one name (Core and Engine both have a Blackboard.swift once).
+    seen: set[str] = set()
     count = 0
     for name, folder in groups.items():
         for file in sorted(folder.rglob("*.swift")):
+            if file.name.lower() in seen:
+                print(f"error: two sources named {file.name}; rename one", file=sys.stderr)
+                return 1
+            seen.add(file.name.lower())
             target = OUT / name / file.relative_to(folder)
             target.parent.mkdir(parents=True, exist_ok=True)
-            text = MODULE_IMPORT.sub("", file.read_text(encoding="utf-8"))
+            if file.name == "Bundled.swift":
+                text = (PLAYGROUND / "Bundled.swift").read_text(encoding="utf-8")
+                text = text.replace("__FACES__", ", ".join(f'"{face}"' for face in faces))
+            else:
+                text = MODULE_IMPORT.sub("", file.read_text(encoding="utf-8"))
             target.write_text(text, encoding="utf-8", newline="\n")
             count += 1
 
-    # The bundled faces and logo, at the same paths MoeedUI's Package.swift copies them from.
-    shutil.copytree(SOURCES / "MoeedUI" / "Resources", OUT / "Resources")
-
-    if has_logo:
-        shutil.copytree(ROOT / "App" / "Assets.xcassets", OUT / "Assets.xcassets")
-        icon = '.asset("AppIcon")'
-    else:
-        icon = ".placeholder(icon: .pencil)"
     (OUT / "Package.swift").write_text(PACKAGE.replace("__ICON__", icon), encoding="utf-8", newline="\n")
 
     archive = shutil.make_archive(str(OUT), "zip", root_dir=OUT.parent, base_dir=OUT.name)
-    print(f"{count} Swift files -> {OUT.relative_to(ROOT)}")
+    print(f"{count} Swift files, {len(faces)} faces -> {OUT.relative_to(ROOT)}")
     print(f"zip: {Path(archive).relative_to(ROOT)}")
     return 0
 

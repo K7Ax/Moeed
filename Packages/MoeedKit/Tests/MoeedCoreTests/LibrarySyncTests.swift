@@ -121,6 +121,24 @@ final class LibrarySyncTests: XCTestCase {
         XCTAssertEqual(LibrarySync.plan([file("a", "ch1.pdf")], against: manifest).updated.map(\.path), ["Term 1/Operating Systems/Slides/ch1.pdf"])
     }
 
+    func testTheShelfPutsTheNewestTermFirstAndFilesInReadingOrder() {
+        let manifest = LibraryManifest(files: [
+            "1": .init(path: "الفصل الأول 1447-1448/Calculus/notes.pdf", version: "v", gone: false),
+            "2": .init(path: "الفصل الأول 1448-1449/Circuits/Lectures/Chapter 10.pdf", version: "v", gone: false),
+            "3": .init(path: "الفصل الأول 1448-1449/Circuits/Lectures/Chapter 2.pdf", version: "v", gone: true),
+            "4": .init(path: "الفصل الأول 1448-1449/Circuits/Syllabus.pdf", version: "v", gone: false),
+            "5": .init(path: "الفصل الأول 1448-1449/Circuits/Labs/Lab 1.pdf", version: "v", gone: false),
+            "6": .init(path: "الفصل الثاني 1448-1449/Signals/a.pdf", version: "v", gone: false),
+            "7": .init(path: "Other/Seminar/b.pdf", version: "v", gone: false),
+        ])
+        let shelf = Shelf(manifest)
+        XCTAssertEqual(shelf.terms.map(\.name), ["الفصل الثاني 1448-1449", "الفصل الأول 1448-1449", "الفصل الأول 1447-1448", "Other"])
+        let circuits = shelf.terms[1].subjects[0]
+        XCTAssertEqual(circuits.files.map(\.name), ["Syllabus.pdf", "Lab 1.pdf", "Chapter 2.pdf", "Chapter 10.pdf"])
+        XCTAssertEqual(circuits.files[1].folders, ["Labs"])
+        XCTAssertEqual(circuits.files[2].gone, true)
+    }
+
     func testNamesAreSafeForTheDisk() {
         XCTAssertEqual(LibrarySync.component("Lab 1/2: AM?"), "Lab 1-2- AM-")
         XCTAssertEqual(LibrarySync.component("..hidden"), "hidden")

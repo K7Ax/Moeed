@@ -18,9 +18,9 @@ let package = Package(
         // Reads PDFs on the device (PDFKit), draws the Set-of-Marks image, talks to the model,
         // and keeps the lecture library in step with Blackboard (read-only, with the student's own session).
         .target(name: "MoeedEngine", dependencies: ["MoeedCore"]),
-        // SwiftUI design system + screens.
+        // SwiftUI design system + screens, and the library's Blackboard link (sign-in page, session, sync).
         // The bundled faces (IBM Plex Sans Arabic, Brygada 1918) and the logo ship as resources.
-        .target(name: "MoeedUI", dependencies: ["MoeedCore"], resources: [.copy("Resources/Fonts"), .copy("Resources/Brand")]),
+        .target(name: "MoeedUI", dependencies: ["MoeedCore", "MoeedEngine"], resources: [.copy("Resources/Fonts"), .copy("Resources/Brand")]),
         // Renders every screen to PNG (used by CI so the design is visible without a Mac),
         // and writes the sample slide as a PDF for the engine to read.
         .executableTarget(name: "Snapshots", dependencies: ["MoeedCore", "MoeedUI"]),
