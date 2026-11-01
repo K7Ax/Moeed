@@ -16,12 +16,16 @@ targets:
     dependencies:
       - package: MoeedKit
         product: MoeedUI
-    # Merged with the generated Info.plist: the background refresh that runs the weekly Blackboard sync.
+    # Merged with the generated Info.plist: the background refresh that runs the weekly Blackboard sync,
+    # and the library folder in Files.
     info:
       path: App/Info.plist
       properties:
         UIBackgroundModes: [fetch]
         BGTaskSchedulerPermittedIdentifiers: [io.github.k7ax.moeed.sync]
+        # The Blackboard library shows in Files, under On My iPad › مُعيد.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
     scheme: {}
     settings:
       base:
@@ -33,9 +37,6 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
-        # The Blackboard library shows in Files, under On My iPad › مُعيد.
-        INFOPLIST_KEY_UIFileSharingEnabled: YES
-        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
