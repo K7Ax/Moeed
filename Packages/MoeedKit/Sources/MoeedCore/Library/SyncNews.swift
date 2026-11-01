@@ -6,6 +6,11 @@ public enum SyncNews {
     public struct Message: Equatable, Sendable {
         public var title: String
         public var body: String
+
+        public init(title: String, body: String) {
+            self.title = title
+            self.body = body
+        }
     }
 
     /// `new` and `updated` are library paths: term/subject/…/file.
