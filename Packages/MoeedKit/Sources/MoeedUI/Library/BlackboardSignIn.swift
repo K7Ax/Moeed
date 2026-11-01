@@ -57,12 +57,12 @@ struct BlackboardSignIn: View {
     private var page: some View {
         #if canImport(UIKit)
         if isSnapshot {
-            Palette.raised
+            Rectangle().fill(Palette.raised)
         } else {
             SignInPage(base: model.base) { cookies in model.linked(cookies) }
         }
         #else
-        Palette.raised
+        Rectangle().fill(Palette.raised)
         #endif
     }
 }

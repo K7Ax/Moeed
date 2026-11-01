@@ -37,6 +37,12 @@ public struct LibraryManifest: Codable, Hashable, Sendable {
         public var version: String
         /// Removed from Blackboard. The local copy stays: a student's lecture is never deleted for them.
         public var gone: Bool
+
+        public init(path: String, version: String, gone: Bool) {
+            self.path = path
+            self.version = version
+            self.gone = gone
+        }
     }
 
     public var files: [String: Entry]
