@@ -304,15 +304,15 @@ struct LibraryView: View {
                 }
             }
             .padding(.bottom, 6)
+            Rectangle().fill(Palette.sep).frame(height: 0.5)
             ForEach(order, id: \.self) { folders in
                 if !folders.isEmpty {
                     Text(verbatim: folders.joined(separator: " · "))
                         .font(Typeface.plex(13, .medium))
                         .foregroundStyle(Palette.text2)
-                        .padding(.top, 16)
+                        .padding(.top, 18)
                         .padding(.bottom, 2)
                 }
-                Rectangle().fill(Palette.sep).frame(height: 0.5)
                 ForEach(groups[folders] ?? []) { file in
                     row(file)
                 }

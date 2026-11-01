@@ -31,9 +31,12 @@ struct BlackboardSignIn: View {
 
     private var bar: some View {
         HStack {
-            Button("إلغاء") { model.showSignIn = false }
-                .font(Typeface.plex(16))
-                .foregroundStyle(Palette.accent)
+            Button { model.showSignIn = false } label: {
+                Text("إلغاء")
+                    .font(Typeface.plex(16))
+                    .foregroundStyle(Palette.accent)
+            }
+            .buttonStyle(.press(0.95))
             Spacer()
             HStack(spacing: 6) {
                 Image(systemName: "lock.fill")
