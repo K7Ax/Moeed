@@ -111,7 +111,8 @@ final class BlackboardSyncTests: XCTestCase {
         XCTAssertEqual(quiet.unchanged, 2)
 
         // The professor replaces chapter 1.
-        FakeBlackboard.replies["\(api)/courses/_11_1/contents"]?.body = FakeBlackboard.replies["\(api)/courses/_11_1/contents"]!.body
+        let listing = FakeBlackboard.replies["\(api)/courses/_11_1/contents"]!.body
+        FakeBlackboard.replies["\(api)/courses/_11_1/contents"]?.body = listing
             .replacingOccurrences(of: "2026-09-01T10:00:00.000Z", with: "2026-10-05T08:00:00.000Z")
         FakeBlackboard.replies["\(api)/courses/_11_1/contents/_2/attachments/_91_1/download"]?.body = "%PDF two"
         let changed = try await syncer().sync()
