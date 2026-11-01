@@ -110,8 +110,9 @@ public enum LibrarySync {
     /// A name that is safe as one folder or file name.
     public static func component(_ name: String) -> String {
         let unsafe = CharacterSet(charactersIn: "/\\:*?\"<>|").union(.controlCharacters)
-        let scalars = name.unicodeScalars.map { unsafe.contains($0) ? "-" : Character($0) }
-        var clean = Blackboard.tidy(String(scalars))
+        // Whitespace first, so a stray tab becomes a space rather than a dash.
+        let scalars = Blackboard.tidy(name).unicodeScalars.map { unsafe.contains($0) ? "-" : Character($0) }
+        var clean = String(scalars)
         while clean.hasPrefix(".") { clean.removeFirst() }
         if clean.count > 120 { clean = String(clean.prefix(120)) }
         return clean.isEmpty ? "_" : clean
